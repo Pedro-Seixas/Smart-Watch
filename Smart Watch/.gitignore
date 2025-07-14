@@ -6,9 +6,4 @@
 # IDE-specific
 .metadata/
 *.launches/
-.project
-.mxproject
-.Id
-.id
-.launch
-.cproject
+*.launch
