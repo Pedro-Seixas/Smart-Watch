@@ -27,6 +27,7 @@
 #define LSM6DS3_ADDR  (0x6B << 1)
 #define OUTX_L_XL            0x28
 #define CTRL1_XL             0x10
+char buffer[100];
 
 /* USER CODE END Includes */
 
@@ -49,6 +50,8 @@
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
+RTC_HandleTypeDef hrtc;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -58,6 +61,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C2_Init(void);
+static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -88,7 +92,7 @@ void SendAccelData(int16_t ax, int16_t ay, int16_t az) {
     CDC_Transmit_FS((uint8_t*)msg, len);
 }
 
-void ReadAndSendWhoAmI(I2C_HandleTypeDef *hi2c) {
+void WhoAmI(I2C_HandleTypeDef *hi2c) {
     uint8_t who_am_i = 0;
     HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, 0x0F, I2C_MEMADD_SIZE_8BIT, &who_am_i, 1, HAL_MAX_DELAY);
 
@@ -131,15 +135,19 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
+
+  // IMU
   int16_t ax, ay, az;
 
-  // This is necessary for power-up
+  // This is necessary for OLED Screen power-up
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, 0);
   HAL_Delay(1);
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, 1);
   HAL_Delay(100);
 
+  // OLED Screen
   LSM6DS3_Init(&hi2c1);
   ssd1306_Init();
   ssd1306_Fill(Black);
@@ -148,6 +156,10 @@ int main(void)
   ssd1306_SetCursor(2, 32);
   ssd1306_WriteString("World", Font_11x18, White);
   ssd1306_UpdateScreen();
+
+  // RTC
+  RTC_TimeTypeDef sTime;
+  RTC_DateTypeDef sDate;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -155,6 +167,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	  HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+	  int len = snprintf(buffer, sizeof(buffer), "Time:%02d:%02d:%02d, Date: %02d/%02d/%02d\r\n",
+			  sTime.Hours, sTime.Minutes, sTime.Seconds, sDate.Date, sDate.Month, (sDate.Year +2000));
+
+	  CDC_Transmit_FS((uint8_t*)buffer, len);
+	  HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -177,8 +197,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_HSI48;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE
+                              |RCC_OSCILLATORTYPE_HSI48;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
@@ -202,8 +224,10 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_USB;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_RTC
+                              |RCC_PERIPHCLK_USB;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -308,6 +332,70 @@ static void MX_I2C2_Init(void)
 }
 
 /**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef sDate = {0};
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+  sTime.Hours = 14;
+  sTime.Minutes = 07;
+  sTime.Seconds = 0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+  sDate.Month = RTC_MONTH_JULY;
+  sDate.Date = 21;
+  sDate.Year = 25;
+
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -320,6 +408,7 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
