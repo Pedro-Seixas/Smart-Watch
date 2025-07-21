@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -27,13 +28,13 @@
 #define LSM6DS3_ADDR  (0x6B << 1)
 #define OUTX_L_XL            0x28
 #define CTRL1_XL             0x10
-char buffer[100];
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+ RTC_TimeTypeDef sTime;
+ RTC_DateTypeDef sDate;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -52,6 +53,20 @@ I2C_HandleTypeDef hi2c2;
 
 RTC_HandleTypeDef hrtc;
 
+/* Definitions for menu */
+osThreadId_t menuHandle;
+const osThreadAttr_t menu_attributes = {
+  .name = "menu",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for imu */
+osThreadId_t imuHandle;
+const osThreadAttr_t imu_attributes = {
+  .name = "imu",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -62,6 +77,9 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_RTC_Init(void);
+void Menu_Task(void *argument);
+void Imu_Task(void *argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -101,6 +119,21 @@ void WhoAmI(I2C_HandleTypeDef *hi2c) {
     CDC_Transmit_FS((uint8_t*)msg, len);
 }
 
+void menu_display_time(){
+	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+	char hour[100];
+	char minute[100];
+	ssd1306_Fill(Black);
+	snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
+	snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
+	ssd1306_SetCursor(16, 32);
+	ssd1306_WriteString(hour, Font_16x26, White);
+	ssd1306_SetCursor(16, 60);
+	ssd1306_WriteString(minute, Font_16x26, White);
+	ssd1306_UpdateScreen();
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -132,7 +165,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USB_DEVICE_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
   MX_RTC_Init();
@@ -157,10 +189,46 @@ int main(void)
   ssd1306_WriteString("World", Font_11x18, White);
   ssd1306_UpdateScreen();
 
-  // RTC
-  RTC_TimeTypeDef sTime;
-  RTC_DateTypeDef sDate;
   /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of menu */
+  menuHandle = osThreadNew(Menu_Task, NULL, &menu_attributes);
+
+  /* creation of imu */
+  imuHandle = osThreadNew(Imu_Task, NULL, &imu_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -169,23 +237,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	  HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-	  char hour[100];
-	  char minute[100];
-	  ssd1306_Fill(Black);
-	  // int len = snprintf(buffer, sizeof(buffer), "Time:%02d:%02d:%02d, Date: %02d/%02d/%02d\r\n",
-		//	  sTime.Hours, sTime.Minutes, sTime.Seconds, sDate.Date, sDate.Month, (sDate.Year +2000));
-
-	  // CDC_Transmit_FS((uint8_t*)buffer, len);
-	  // HAL_Delay(1000);
-	  snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
-	  snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
-	  ssd1306_SetCursor(16, 32);
-	  ssd1306_WriteString(hour, Font_16x26, White);
-	  ssd1306_SetCursor(16, 60);
-	  ssd1306_WriteString(minute, Font_16x26, White);
-	  ssd1306_UpdateScreen();
   }
   /* USER CODE END 3 */
 }
@@ -386,8 +437,8 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 16;
-  sTime.Minutes = 00;
+  sTime.Hours = 17;
+  sTime.Minutes = 16;
   sTime.Seconds = 0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
@@ -452,6 +503,66 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_Menu_Task */
+/**
+  * @brief  Function implementing the menu thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_Menu_Task */
+void Menu_Task(void *argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  typedef enum{
+	  DISPLAY_TIME,
+	  CHANGE_TIME,
+	  DISPLAY_TEMPERATURE,
+	  DISPLAY_IMU,
+	  SHOW_MENU
+  } menu;
+  menu main_menu = DISPLAY_TIME;
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  switch(main_menu){
+	  	  case DISPLAY_TIME:
+	  		  menu_display_time();
+	  		  break;
+	  	  case CHANGE_TIME:
+	  		  break;
+	  	  case DISPLAY_TEMPERATURE:
+	  		  break;
+	  	  case DISPLAY_IMU:
+	  		  break;
+	  	  case SHOW_MENU:
+	  		  break;
+	  	  default:
+	  }
+	  osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_Imu_Task */
+/**
+* @brief Function implementing the imu thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Imu_Task */
+void Imu_Task(void *argument)
+{
+  /* USER CODE BEGIN Imu_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END Imu_Task */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
