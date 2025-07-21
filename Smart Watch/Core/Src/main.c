@@ -57,7 +57,7 @@ RTC_HandleTypeDef hrtc;
 osThreadId_t menuHandle;
 const osThreadAttr_t menu_attributes = {
   .name = "menu",
-  .stack_size = 128 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for imu */
@@ -122,11 +122,15 @@ void WhoAmI(I2C_HandleTypeDef *hi2c) {
 void menu_display_time(){
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
 	char hour[100];
 	char minute[100];
+
 	ssd1306_Fill(Black);
+
 	snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
 	snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
+
 	ssd1306_SetCursor(16, 32);
 	ssd1306_WriteString(hour, Font_16x26, White);
 	ssd1306_SetCursor(16, 60);
@@ -160,7 +164,8 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -402,6 +407,40 @@ static void MX_I2C2_Init(void)
   * @param None
   * @retval None
   */
+void Menu_Task(void *argument)
+{
+  typedef enum{
+	  DISPLAY_TIME,
+	  CHANGE_TIME,
+	  DISPLAY_TEMPERATURE,
+	  DISPLAY_IMU,
+	  SHOW_MENU
+  } menu;
+  menu main_menu = DISPLAY_TIME;
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  switch(main_menu){
+	  	  case DISPLAY_TIME:
+	  		  menu_display_time();
+	  		  break;
+	  	  case CHANGE_TIME:
+	  		  break;
+	  	  case DISPLAY_TEMPERATURE:
+	  		  break;
+	  	  case DISPLAY_IMU:
+	  		  break;
+	  	  case SHOW_MENU:
+	  		  break;
+	  	  default:
+	  		  break;
+	  }
+	  osDelay(100);
+  }
+  /* USER CODE END 5 */
+}
+
 static void MX_RTC_Init(void)
 {
 
@@ -511,41 +550,6 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 /* USER CODE END Header_Menu_Task */
-void Menu_Task(void *argument)
-{
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
-  typedef enum{
-	  DISPLAY_TIME,
-	  CHANGE_TIME,
-	  DISPLAY_TEMPERATURE,
-	  DISPLAY_IMU,
-	  SHOW_MENU
-  } menu;
-  menu main_menu = DISPLAY_TIME;
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-	  switch(main_menu){
-	  	  case DISPLAY_TIME:
-	  		  menu_display_time();
-	  		  break;
-	  	  case CHANGE_TIME:
-	  		  break;
-	  	  case DISPLAY_TEMPERATURE:
-	  		  break;
-	  	  case DISPLAY_IMU:
-	  		  break;
-	  	  case SHOW_MENU:
-	  		  break;
-	  	  default:
-	  }
-	  osDelay(1);
-  }
-  /* USER CODE END 5 */
-}
-
 /* USER CODE BEGIN Header_Imu_Task */
 /**
 * @brief Function implementing the imu thread.
@@ -559,7 +563,7 @@ void Imu_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osDelay(100);
   }
   /* USER CODE END Imu_Task */
 }
