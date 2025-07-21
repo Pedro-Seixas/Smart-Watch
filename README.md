@@ -17,4 +17,9 @@ A custom low-power stm32-based wearable smart watch
 
 
 ## PCB
+<p align="center">
+<img width="49%" alt="watch-front" src="https://github.com/user-attachments/assets/f8c1985a-c186-4785-b3f6-c97e22542563" />
+<img width="49%" alt="watch-back" src="https://github.com/user-attachments/assets/17446b47-9ef8-4061-af23-15e3b7f4a390" />
+</p>
+
 
