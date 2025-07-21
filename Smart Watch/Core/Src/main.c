@@ -167,15 +167,25 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 	  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	  HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+	  char hour[100];
+	  char minute[100];
+	  ssd1306_Fill(Black);
+	  // int len = snprintf(buffer, sizeof(buffer), "Time:%02d:%02d:%02d, Date: %02d/%02d/%02d\r\n",
+		//	  sTime.Hours, sTime.Minutes, sTime.Seconds, sDate.Date, sDate.Month, (sDate.Year +2000));
 
-	  int len = snprintf(buffer, sizeof(buffer), "Time:%02d:%02d:%02d, Date: %02d/%02d/%02d\r\n",
-			  sTime.Hours, sTime.Minutes, sTime.Seconds, sDate.Date, sDate.Month, (sDate.Year +2000));
-
-	  CDC_Transmit_FS((uint8_t*)buffer, len);
-	  HAL_Delay(1000);
-    /* USER CODE BEGIN 3 */
+	  // CDC_Transmit_FS((uint8_t*)buffer, len);
+	  // HAL_Delay(1000);
+	  snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
+	  snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
+	  ssd1306_SetCursor(16, 32);
+	  ssd1306_WriteString(hour, Font_16x26, White);
+	  ssd1306_SetCursor(16, 60);
+	  ssd1306_WriteString(minute, Font_16x26, White);
+	  ssd1306_UpdateScreen();
   }
   /* USER CODE END 3 */
 }
@@ -194,13 +204,18 @@ void SystemClock_Config(void)
   */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
+  /** Configure LSE Drive Capability
+  */
+  HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE
                               |RCC_OSCILLATORTYPE_HSI48;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
@@ -227,7 +242,7 @@ void SystemClock_Config(void)
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_RTC
                               |RCC_PERIPHCLK_USB;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
-  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -371,8 +386,8 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 14;
-  sTime.Minutes = 07;
+  sTime.Hours = 16;
+  sTime.Minutes = 00;
   sTime.Seconds = 0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
@@ -383,7 +398,7 @@ static void MX_RTC_Init(void)
   sDate.WeekDay = RTC_WEEKDAY_MONDAY;
   sDate.Month = RTC_MONTH_JULY;
   sDate.Date = 21;
-  sDate.Year = 25;
+  sDate.Year = 0;
 
   if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
   {
