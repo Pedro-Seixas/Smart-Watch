@@ -39,7 +39,13 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+ typedef enum{
+	  DISPLAY_CLOCK,
+	  CHANGE_TIME,
+	  DISPLAY_SENSORS,
+	  SHOW_MENU
+ } menu;
+ volatile menu main_menu;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -119,6 +125,7 @@ void WhoAmI(I2C_HandleTypeDef *hi2c) {
     CDC_Transmit_FS((uint8_t*)msg, len);
 }
 
+// TODO: Change the WriteChar function to reflect the landscape mode.
 void menu_display_time(){
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
@@ -138,6 +145,55 @@ void menu_display_time(){
 	ssd1306_UpdateScreen();
 }
 
+void show_menu(){
+	menu current_selected = -1;
+	while(1){
+
+		if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+			vTaskDelay(pdMS_TO_TICKS(200));
+			current_selected = (current_selected + 1) % 3;
+		}
+		ssd1306_Fill(Black);
+		switch(current_selected){
+			case DISPLAY_CLOCK:
+				ssd1306_SetCursor(2, 0);
+				ssd1306_WriteString(">Clock", Font_7x10, White);
+				ssd1306_SetCursor(2, 24);
+				ssd1306_WriteString("Config", Font_7x10, White);
+				ssd1306_SetCursor(2, 48);
+				ssd1306_WriteString("Sensors", Font_7x10, White);
+				break;
+			case CHANGE_TIME:
+				ssd1306_SetCursor(2, 0);
+				ssd1306_WriteString("Clock", Font_7x10, White);
+				ssd1306_SetCursor(2, 24);
+				ssd1306_WriteString(">Config", Font_7x10, White);
+				ssd1306_SetCursor(2, 48);
+				ssd1306_WriteString("Sensors", Font_7x10, White);
+				break;
+			case DISPLAY_SENSORS:
+				ssd1306_SetCursor(2, 0);
+				ssd1306_WriteString("Clock", Font_7x10, White);
+				ssd1306_SetCursor(2, 24);
+				ssd1306_WriteString("Config", Font_7x10, White);
+				ssd1306_SetCursor(2, 48);
+				ssd1306_WriteString(">Sensors", Font_7x10, White);
+				break;
+		}
+
+		ssd1306_UpdateScreen();
+	}
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	switch(GPIO_Pin){
+		case GPIO_PIN_0:
+			main_menu = SHOW_MENU;
+			break;
+		default:
+			break;
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -407,40 +463,6 @@ static void MX_I2C2_Init(void)
   * @param None
   * @retval None
   */
-void Menu_Task(void *argument)
-{
-  typedef enum{
-	  DISPLAY_TIME,
-	  CHANGE_TIME,
-	  DISPLAY_TEMPERATURE,
-	  DISPLAY_IMU,
-	  SHOW_MENU
-  } menu;
-  menu main_menu = DISPLAY_TIME;
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-	  switch(main_menu){
-	  	  case DISPLAY_TIME:
-	  		  menu_display_time();
-	  		  break;
-	  	  case CHANGE_TIME:
-	  		  break;
-	  	  case DISPLAY_TEMPERATURE:
-	  		  break;
-	  	  case DISPLAY_IMU:
-	  		  break;
-	  	  case SHOW_MENU:
-	  		  break;
-	  	  default:
-	  		  break;
-	  }
-	  osDelay(100);
-  }
-  /* USER CODE END 5 */
-}
-
 static void MX_RTC_Init(void)
 {
 
@@ -476,8 +498,8 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 17;
-  sTime.Minutes = 16;
+  sTime.Hours = 13;
+  sTime.Minutes = 54;
   sTime.Seconds = 0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
@@ -521,9 +543,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_2, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PA0 PA4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_4;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -533,6 +555,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_1_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -550,6 +582,34 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 /* USER CODE END Header_Menu_Task */
+void Menu_Task(void *argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 5 */
+  main_menu = DISPLAY_CLOCK;
+  /* Infinite loop */
+  for(;;)
+  {
+	  switch(main_menu){
+	  	  case DISPLAY_CLOCK:
+	  		  menu_display_time();
+	  		  break;
+	  	  case CHANGE_TIME:
+	  		  break;
+	  	  case DISPLAY_SENSORS:
+	  		  break;
+	  	  case SHOW_MENU:
+	  		  show_menu();
+	  		  break;
+	  	  default:
+	  		  break;
+	  }
+	  osDelay(100);
+  }
+  /* USER CODE END 5 */
+}
+
 /* USER CODE BEGIN Header_Imu_Task */
 /**
 * @brief Function implementing the imu thread.
