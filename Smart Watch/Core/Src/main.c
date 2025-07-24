@@ -45,7 +45,11 @@
 	  DISPLAY_SENSORS,
 	  SHOW_MENU
  } menu;
+
+ // Flags for the menu
  volatile menu main_menu;
+ volatile uint8_t menu_active = 0;
+ volatile uint8_t select_pressed = 0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -138,6 +142,7 @@ void menu_display_time(){
 	snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
 	snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
 
+	// Show time (hour above minutes)
 	ssd1306_SetCursor(16, 32);
 	ssd1306_WriteString(hour, Font_16x26, White);
 	ssd1306_SetCursor(16, 60);
@@ -149,11 +154,14 @@ void show_menu(){
 	menu current_selected = -1;
 	while(1){
 
+		// Navigate menu options
 		if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
 			vTaskDelay(pdMS_TO_TICKS(200));
 			current_selected = (current_selected + 1) % 3;
 		}
 		ssd1306_Fill(Black);
+
+		// Show which option is selected
 		switch(current_selected){
 			case DISPLAY_CLOCK:
 				ssd1306_SetCursor(2, 0);
@@ -182,13 +190,24 @@ void show_menu(){
 		}
 
 		ssd1306_UpdateScreen();
+
+		if(menu_active && select_pressed){
+			main_menu = current_selected;
+			select_pressed = 0;
+			break;
+		}
 	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	switch(GPIO_Pin){
 		case GPIO_PIN_0:
-			main_menu = SHOW_MENU;
+			if (!menu_active) {
+				menu_active = 1;
+				main_menu = SHOW_MENU;
+			}else {
+				select_pressed = 1;
+			}
 			break;
 		default:
 			break;
@@ -594,12 +613,18 @@ void Menu_Task(void *argument)
 	  switch(main_menu){
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
+	  		  menu_active = 0;
 	  		  break;
 	  	  case CHANGE_TIME:
+	  		  ssd1306_Fill(Black);
+	  		  ssd1306_UpdateScreen();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
+	  		  ssd1306_Fill(Black);
+	  		  ssd1306_UpdateScreen();
 	  		  break;
 	  	  case SHOW_MENU:
+	  		  // Menu Loop (Only breaks if an option is selected)
 	  		  show_menu();
 	  		  break;
 	  	  default:
