@@ -189,7 +189,6 @@ void show_menu(){
 		}
 
 		ssd1306_UpdateScreen();
-		osDelay(50);
 
 		if(menu_active && select_pressed){
 			main_menu = current_selected;
@@ -197,6 +196,10 @@ void show_menu(){
 			break;
 		}
 	}
+}
+
+void show_sensors(){
+
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){

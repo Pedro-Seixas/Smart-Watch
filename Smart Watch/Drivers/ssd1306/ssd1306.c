@@ -224,12 +224,33 @@ char ssd1306_WriteChar(char ch, SSD1306_Font_t Font, SSD1306_COLOR color) {
     // Check if character is valid
     if (ch < 32 || ch > 126)
         return 0;
+#ifdef SSD1306_MIRROR_HORIZ
+    const uint8_t char_width = Font.char_width ? Font.char_width[ch-32] : Font.width;
+        // Check remaining space on current line
+        if (SSD1306_WIDTH < (SSD1306.CurrentY + Font.height) ||
+            SSD1306_HEIGHT < (SSD1306.CurrentX + char_width))
+        {
+            // Not enough space on current line
+            return 0;
+        }
 
+        // Use the font to write
+        for(i = 0; i < Font.height; i++) {
+            b = Font.data[(ch - 32) * Font.height + i];
+            for(j = 0; j < char_width; j++) {
+                if((b << j) & 0x8000)  {
+                    ssd1306_DrawPixel(SSD1306.CurrentY + i, (SSD1306.CurrentX + j), (SSD1306_COLOR) color);
+                } else {
+                    ssd1306_DrawPixel(SSD1306.CurrentY + i, (SSD1306.CurrentX + j), (SSD1306_COLOR)!color);
+                }
+            }
+        }
+#else
     // Char width is not equal to font width for proportional font
     const uint8_t char_width = Font.char_width ? Font.char_width[ch-32] : Font.width;
     // Check remaining space on current line
-    if (SSD1306_WIDTH < (SSD1306.CurrentY + Font.height) ||
-        SSD1306_HEIGHT < (SSD1306.CurrentX + char_width))
+    if (SSD1306_WIDTH < (SSD1306.CurrentX + char_width) ||
+        SSD1306_HEIGHT < (SSD1306.CurrentY + Font.height))
     {
         // Not enough space on current line
         return 0;
@@ -240,13 +261,13 @@ char ssd1306_WriteChar(char ch, SSD1306_Font_t Font, SSD1306_COLOR color) {
         b = Font.data[(ch - 32) * Font.height + i];
         for(j = 0; j < char_width; j++) {
             if((b << j) & 0x8000)  {
-                ssd1306_DrawPixel(SSD1306.CurrentY + i, (SSD1306.CurrentX + j), (SSD1306_COLOR) color);
+                ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) color);
             } else {
-                ssd1306_DrawPixel(SSD1306.CurrentY + i, (SSD1306.CurrentX + j), (SSD1306_COLOR)!color);
+                ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR)!color);
             }
         }
     }
-
+#endif
     // The current space is now taken
     SSD1306.CurrentX += char_width;
 
@@ -263,7 +284,7 @@ char ssd1306_WriteString(char* str, SSD1306_Font_t Font, SSD1306_COLOR color) {
         }
         str++;
     }
-    
+
     // Everything ok
     return *str;
 }
