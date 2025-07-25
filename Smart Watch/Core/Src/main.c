@@ -151,7 +151,7 @@ void menu_display_time(){
 }
 
 void show_menu(){
-	menu current_selected = -1;
+	menu current_selected = 0;
 	while(1){
 
 		// Navigate menu options
@@ -160,7 +160,6 @@ void show_menu(){
 			current_selected = (current_selected + 1) % 3;
 		}
 		ssd1306_Fill(Black);
-
 		// Show which option is selected
 		switch(current_selected){
 			case DISPLAY_CLOCK:
@@ -190,6 +189,7 @@ void show_menu(){
 		}
 
 		ssd1306_UpdateScreen();
+		osDelay(50);
 
 		if(menu_active && select_pressed){
 			main_menu = current_selected;
@@ -616,11 +616,11 @@ void Menu_Task(void *argument)
 	  		  menu_active = 0;
 	  		  break;
 	  	  case CHANGE_TIME:
-	  		  ssd1306_Fill(Black);
+	  		  ssd1306_Fill(White);
 	  		  ssd1306_UpdateScreen();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
-	  		  ssd1306_Fill(Black);
+	  		  ssd1306_Fill(White);
 	  		  ssd1306_UpdateScreen();
 	  		  break;
 	  	  case SHOW_MENU:
