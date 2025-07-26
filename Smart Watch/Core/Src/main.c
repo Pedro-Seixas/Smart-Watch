@@ -130,6 +130,18 @@ void LSM6DS3_ReadGyro(I2C_HandleTypeDef *hi2c, int16_t *gx, int16_t *gy, int16_t
     *gz = (int16_t)(gyroData[5] << 8 | gyroData[4]);
 }
 
+void LSM6DS3_ReadTemp(I2C_HandleTypeDef *hi2c, int16_t *temp){
+	uint8_t tempData[2];
+	uint16_t OUT_TEMP_L = 0x20;
+
+    // Read 2 bytes from OUTX_TEMP_L (Temperature Sensor)
+    HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, OUT_TEMP_L, I2C_MEMADD_SIZE_8BIT, tempData, 2, HAL_MAX_DELAY);
+
+    // Combine high and low bytes
+    *temp = (int16_t)(tempData[1] << 8 | tempData[0]);
+
+}
+
 void SendAccelData(int16_t ax, int16_t ay, int16_t az) {
     char msg[64];
     int len = snprintf(msg, sizeof(msg), "AX: %d AY: %d AZ: %d\r\n", ax, ay, az);
@@ -213,29 +225,50 @@ void show_menu(){
 	}
 }
 
+int8_t map_to_range(int16_t value) {
+    // Map from int16_t to -90,90
+    if (value >= 0)
+        return (int8_t)(((int32_t)value * 90) / 32767);
+    else
+        return (int8_t)(((int32_t)value * 90) / 32768);
+}
+
+int convert_to_fahrenheit(int16_t rawTemp) {
+    float tempC = 25.0f + ((float)rawTemp / 16.0f);
+    float tempF = tempC * 1.8f + 32.0f;
+    return (int)(tempF + 0.5f);
+}
+
 void show_sensors(){
-	int16_t ax, ay, az, gx, gy, gz;
+	int16_t ax, ay, az, gx, gy, gz, tempInt;
 	char gyro[50];
 	char accel[50];
-	//char temp[50];
+	char temp[50];
 
 	// Read Sensors
 	LSM6DS3_ReadGyro(&hi2c1, &gx, &gy, &gz);
 	LSM6DS3_ReadAccel(&hi2c1, &ax, &ay, &az);
+	LSM6DS3_ReadTemp(&hi2c1, &tempInt);
 
 	// Display Sensors
 	ssd1306_Fill(Black);
 
-	snprintf(gyro, sizeof(gyro), "Gyro: %d, %d, %d", gx, gy, gz);
-	snprintf(accel, sizeof(accel), "Accl: %d, %d, %d", ax, ay, az);
-	//snprintf(temp, sizeof(temp), "%d", tempInt);
+	snprintf(gyro, sizeof(gyro), "%d,%d,%d", map_to_range(gx), map_to_range(gy), map_to_range(gz));
+	snprintf(accel, sizeof(accel), "%d,%d,%d", map_to_range(ax), map_to_range(ay), map_to_range(az));
+	snprintf(temp, sizeof(temp), "%d", (tempInt));
 
-	ssd1306_SetCursor(2, 0);
+	ssd1306_SetCursor(16, 0);
+	ssd1306_WriteString("Gyro", Font_6x8, White);
+	ssd1306_SetCursor(2, 10);
 	ssd1306_WriteString(gyro, Font_6x8, White);
-	ssd1306_SetCursor(2, 24);
+	ssd1306_SetCursor(16, 24);
+	ssd1306_WriteString("Accel", Font_6x8, White);
+	ssd1306_SetCursor(2, 34);
 	ssd1306_WriteString(accel, Font_6x8, White);
-	ssd1306_SetCursor(2, 48);
-	ssd1306_WriteString("Temp:", Font_6x8, White);
+	ssd1306_SetCursor(16, 48);
+	ssd1306_WriteString("Temp", Font_6x8, White);
+	ssd1306_SetCursor(16, 58);
+	ssd1306_WriteString(temp, Font_6x8, White);
 	ssd1306_UpdateScreen();
 
 	vTaskDelay(100);
@@ -297,17 +330,16 @@ int main(void)
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
 
-  // IMU
-  int16_t ax, ay, az;
-
   // This is necessary for OLED Screen power-up
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, 0);
   HAL_Delay(1);
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, 1);
   HAL_Delay(100);
 
-  // OLED Screen
+  // Init accelerometer and gyroscope
   LSM6DS3_Init(&hi2c1);
+
+  // OLED Screen
   ssd1306_Init();
   ssd1306_Fill(Black);
   ssd1306_SetCursor(2, 0);
