@@ -236,41 +236,44 @@ int8_t map_to_range(int16_t value) {
 int convert_to_fahrenheit(int16_t rawTemp) {
     float tempC = 25.0f + ((float)rawTemp / 16.0f);
     float tempF = tempC * 1.8f + 32.0f;
-    return (int)(tempF + 0.5f);
+    return (int)(tempC);
 }
 
 void show_sensors(){
 	int16_t ax, ay, az, gx, gy, gz, tempInt;
 	char gyro[50];
 	char accel[50];
-	char temp[50];
+	//char temp[50];
 
 	// Read Sensors
 	LSM6DS3_ReadGyro(&hi2c1, &gx, &gy, &gz);
 	LSM6DS3_ReadAccel(&hi2c1, &ax, &ay, &az);
-	LSM6DS3_ReadTemp(&hi2c1, &tempInt);
+	//LSM6DS3_ReadTemp(&hi2c1, &tempInt);
 
 	// Display Sensors
 	ssd1306_Fill(Black);
 
 	snprintf(gyro, sizeof(gyro), "%d,%d,%d", map_to_range(gx), map_to_range(gy), map_to_range(gz));
 	snprintf(accel, sizeof(accel), "%d,%d,%d", map_to_range(ax), map_to_range(ay), map_to_range(az));
-	snprintf(temp, sizeof(temp), "%d", (tempInt));
+	//snprintf(temp, sizeof(temp), "%d", convert_to_fahrenheit(tempInt));
 
 	ssd1306_SetCursor(16, 0);
 	ssd1306_WriteString("Gyro", Font_6x8, White);
-	ssd1306_SetCursor(2, 10);
+	ssd1306_SetCursor(2, 12);
 	ssd1306_WriteString(gyro, Font_6x8, White);
 	ssd1306_SetCursor(16, 24);
 	ssd1306_WriteString("Accel", Font_6x8, White);
-	ssd1306_SetCursor(2, 34);
+	ssd1306_SetCursor(2, 36);
 	ssd1306_WriteString(accel, Font_6x8, White);
+
+	// Removed Temperature as it is not reliable
+	/*
 	ssd1306_SetCursor(16, 48);
 	ssd1306_WriteString("Temp", Font_6x8, White);
 	ssd1306_SetCursor(16, 58);
 	ssd1306_WriteString(temp, Font_6x8, White);
 	ssd1306_UpdateScreen();
-
+	 */
 	vTaskDelay(100);
 
 	if(menu_active && select_pressed){
