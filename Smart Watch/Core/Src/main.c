@@ -26,7 +26,6 @@
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
 #define LSM6DS3_ADDR  (0x6B << 1)
-#define OUTX_L_XL            0x28
 #define CTRL1_XL             0x10
 
 /* USER CODE END Includes */
@@ -99,19 +98,36 @@ void Imu_Task(void *argument);
 
 void LSM6DS3_Init(I2C_HandleTypeDef *hi2c) {
     uint8_t ctrl1_xl = 0x60;
+    uint8_t ctrl2_g = 0x40;
+
     HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL1_XL, I2C_MEMADD_SIZE_8BIT, &ctrl1_xl, 1, HAL_MAX_DELAY);
+    HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, 0x11, I2C_MEMADD_SIZE_8BIT, &ctrl2_g, 1, HAL_MAX_DELAY);
 }
 
 void LSM6DS3_ReadAccel(I2C_HandleTypeDef *hi2c, int16_t *ax, int16_t *ay, int16_t *az) {
     uint8_t accelData[6];
+	uint16_t OUTX_L_XL = 0x28;
 
-    // Read 6 bytes from OUTX_L_XL to OUTZ_H_XL (auto-increment)
+    // Read 6 bytes from OUTX_L_XL to OUTZ_H_XL (Accelerometer)
     HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, OUTX_L_XL, I2C_MEMADD_SIZE_8BIT, accelData, 6, HAL_MAX_DELAY);
 
     // Combine high and low bytes
     *ax = (int16_t)(accelData[1] << 8 | accelData[0]);
     *ay = (int16_t)(accelData[3] << 8 | accelData[2]);
     *az = (int16_t)(accelData[5] << 8 | accelData[4]);
+}
+
+void LSM6DS3_ReadGyro(I2C_HandleTypeDef *hi2c, int16_t *gx, int16_t *gy, int16_t *gz) {
+    uint8_t gyroData[6];
+    uint16_t OUTX_L_G = 0x22;
+
+    // Read 6 bytes from OUTX_L_G (Gyroscope)
+    HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, OUTX_L_G, I2C_MEMADD_SIZE_8BIT, gyroData, 6, HAL_MAX_DELAY);
+
+    // Combine high and low bytes
+    *gx = (int16_t)(gyroData[1] << 8 | gyroData[0]);
+    *gy = (int16_t)(gyroData[3] << 8 | gyroData[2]);
+    *gz = (int16_t)(gyroData[5] << 8 | gyroData[4]);
 }
 
 void SendAccelData(int16_t ax, int16_t ay, int16_t az) {
@@ -129,7 +145,6 @@ void WhoAmI(I2C_HandleTypeDef *hi2c) {
     CDC_Transmit_FS((uint8_t*)msg, len);
 }
 
-// TODO: Change the WriteChar function to reflect the landscape mode.
 void menu_display_time(){
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
@@ -199,7 +214,36 @@ void show_menu(){
 }
 
 void show_sensors(){
+	int16_t ax, ay, az, gx, gy, gz;
+	char gyro[50];
+	char accel[50];
+	//char temp[50];
 
+	// Read Sensors
+	LSM6DS3_ReadGyro(&hi2c1, &gx, &gy, &gz);
+	LSM6DS3_ReadAccel(&hi2c1, &ax, &ay, &az);
+
+	// Display Sensors
+	ssd1306_Fill(Black);
+
+	snprintf(gyro, sizeof(gyro), "Gyro: %d, %d, %d", gx, gy, gz);
+	snprintf(accel, sizeof(accel), "Accl: %d, %d, %d", ax, ay, az);
+	//snprintf(temp, sizeof(temp), "%d", tempInt);
+
+	ssd1306_SetCursor(2, 0);
+	ssd1306_WriteString(gyro, Font_6x8, White);
+	ssd1306_SetCursor(2, 24);
+	ssd1306_WriteString(accel, Font_6x8, White);
+	ssd1306_SetCursor(2, 48);
+	ssd1306_WriteString("Temp:", Font_6x8, White);
+	ssd1306_UpdateScreen();
+
+	vTaskDelay(100);
+
+	if(menu_active && select_pressed){
+		main_menu = SHOW_MENU;
+		select_pressed = 0;
+	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -623,8 +667,7 @@ void Menu_Task(void *argument)
 	  		  ssd1306_UpdateScreen();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
-	  		  ssd1306_Fill(White);
-	  		  ssd1306_UpdateScreen();
+	  		  show_sensors();
 	  		  break;
 	  	  case SHOW_MENU:
 	  		  // Menu Loop (Only breaks if an option is selected)
