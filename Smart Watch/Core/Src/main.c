@@ -272,8 +272,9 @@ void show_sensors(){
 	ssd1306_WriteString("Temp", Font_6x8, White);
 	ssd1306_SetCursor(16, 58);
 	ssd1306_WriteString(temp, Font_6x8, White);
-	ssd1306_UpdateScreen();
 	 */
+
+	ssd1306_UpdateScreen();
 	vTaskDelay(100);
 
 	if(menu_active && select_pressed){
