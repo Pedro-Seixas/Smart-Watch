@@ -326,6 +326,12 @@ void menu_change_time(){
 		menu_selected = (menu_selected + 1) % 3;
 	}
 
+	if(menu_active && select_pressed && menu_selected == STATE_CONFIRM_FIELD){
+		main_menu = SHOW_MENU;
+		select_pressed = 0;
+	}
+
+
 	// Show time (hour above minutes)
 	ssd1306_SetCursor(16, 32);
 	ssd1306_WriteString(hour, Font_16x26, White);
