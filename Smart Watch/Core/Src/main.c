@@ -283,6 +283,60 @@ void show_sensors(){
 	}
 }
 
+void menu_change_time(){
+	typedef enum{
+		STATE_EDIT_HOUR,
+		STATE_EDIT_MINUTE,
+		STATE_CONFIRM_FIELD
+	} MenuState;
+
+	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+	char hour[50];
+	char minute[50];
+
+	ssd1306_Fill(Black);
+
+	static MenuState menu_selected = STATE_EDIT_HOUR;
+
+	snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
+	snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
+
+	switch(menu_selected){
+		case STATE_EDIT_HOUR:
+			ssd1306_SetCursor(2, 32);
+			ssd1306_WriteString(">", Font_11x18, White);
+
+			break;
+		case STATE_EDIT_MINUTE:
+			ssd1306_SetCursor(2, 60);
+			ssd1306_WriteString(">", Font_11x18, White);
+
+			break;
+		case STATE_CONFIRM_FIELD:
+			ssd1306_SetCursor(2, 105);
+			ssd1306_WriteString(">", Font_11x18, White);
+			break;
+	}
+
+	// Select hour or minute
+	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+		vTaskDelay(pdMS_TO_TICKS(200));
+		menu_selected = (menu_selected + 1) % 3;
+	}
+
+	// Show time (hour above minutes)
+	ssd1306_SetCursor(16, 32);
+	ssd1306_WriteString(hour, Font_16x26, White);
+	ssd1306_SetCursor(16, 60);
+	ssd1306_WriteString(minute, Font_16x26, White);
+	ssd1306_SetCursor(16, 105);
+	ssd1306_WriteString("Save", Font_11x18, White);
+	ssd1306_UpdateScreen();
+
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	switch(GPIO_Pin){
 		case GPIO_PIN_0:
@@ -699,8 +753,7 @@ void Menu_Task(void *argument)
 	  		  menu_active = 0;
 	  		  break;
 	  	  case CHANGE_TIME:
-	  		  ssd1306_Fill(White);
-	  		  ssd1306_UpdateScreen();
+	  	  	  menu_change_time();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
 	  		  show_sensors();
