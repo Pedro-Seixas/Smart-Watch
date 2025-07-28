@@ -179,14 +179,17 @@ void menu_display_time(){
 
 void show_menu(){
 	menu current_selected = 0;
+	// TODO REMOVE WHILE LOOP
 	while(1){
 
 		// Navigate menu options
 		if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
-			vTaskDelay(pdMS_TO_TICKS(200));
-			current_selected = (current_selected + 1) % 3;
+			main_menu = current_selected;
+			break;
 		}
+
 		ssd1306_Fill(Black);
+
 		// Show which option is selected
 		switch(current_selected){
 			case DISPLAY_CLOCK:
@@ -218,9 +221,9 @@ void show_menu(){
 		ssd1306_UpdateScreen();
 
 		if(menu_active && select_pressed){
-			main_menu = current_selected;
+			vTaskDelay(pdMS_TO_TICKS(200));
+			current_selected = (current_selected + 1) % 3;
 			select_pressed = 0;
-			break;
 		}
 	}
 }
@@ -275,12 +278,13 @@ void show_sensors(){
 	 */
 
 	ssd1306_UpdateScreen();
-	vTaskDelay(100);
 
-	if(menu_active && select_pressed){
+	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+		vTaskDelay(pdMS_TO_TICKS(200));
 		main_menu = SHOW_MENU;
-		select_pressed = 0;
 	}
+
+	vTaskDelay(100);
 }
 
 void menu_change_time(){
@@ -321,13 +325,13 @@ void menu_change_time(){
 	}
 
 	// Select hour or minute
-	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
-		vTaskDelay(pdMS_TO_TICKS(200));
+	if(menu_active && select_pressed){
 		menu_selected = (menu_selected + 1) % 3;
 	}
 
 	// See which option was selected
-	if(menu_active && select_pressed && menu_selected == STATE_EDIT_HOUR){
+	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) && menu_selected == STATE_EDIT_HOUR){
+		vTaskDelay(pdMS_TO_TICKS(200));
 		if(sTime.Hours < 23){
 			sTime.Hours++;
 		}else{
@@ -335,7 +339,8 @@ void menu_change_time(){
 		}
 
 		HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	}else if(menu_active && select_pressed && menu_selected == STATE_EDIT_MINUTE){
+	}else if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) && menu_selected == STATE_EDIT_MINUTE){
+		vTaskDelay(pdMS_TO_TICKS(200));
 		if(sTime.Minutes < 59){
 			sTime.Minutes++;
 		}else{
@@ -343,7 +348,8 @@ void menu_change_time(){
 		}
 
 		HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	}else if(menu_active && select_pressed && menu_selected == STATE_CONFIRM_FIELD){
+	}else if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) && menu_selected == STATE_CONFIRM_FIELD){
+		vTaskDelay(pdMS_TO_TICKS(200));
 		main_menu = SHOW_MENU;
 	}
 
@@ -357,6 +363,8 @@ void menu_change_time(){
 	ssd1306_SetCursor(16, 105);
 	ssd1306_WriteString("Save", Font_11x18, White);
 	ssd1306_UpdateScreen();
+
+	vTaskDelay(100);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
