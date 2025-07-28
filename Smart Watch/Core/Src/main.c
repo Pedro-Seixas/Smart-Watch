@@ -326,11 +326,28 @@ void menu_change_time(){
 		menu_selected = (menu_selected + 1) % 3;
 	}
 
-	if(menu_active && select_pressed && menu_selected == STATE_CONFIRM_FIELD){
+	// See which option was selected
+	if(menu_active && select_pressed && menu_selected == STATE_EDIT_HOUR){
+		if(sTime.Hours < 23){
+			sTime.Hours++;
+		}else{
+			sTime.Hours = 0;
+		}
+
+		HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	}else if(menu_active && select_pressed && menu_selected == STATE_EDIT_MINUTE){
+		if(sTime.Minutes < 59){
+			sTime.Minutes++;
+		}else{
+			sTime.Minutes = 0;
+		}
+
+		HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	}else if(menu_active && select_pressed && menu_selected == STATE_CONFIRM_FIELD){
 		main_menu = SHOW_MENU;
-		select_pressed = 0;
 	}
 
+	select_pressed = 0;
 
 	// Show time (hour above minutes)
 	ssd1306_SetCursor(16, 32);
@@ -340,7 +357,6 @@ void menu_change_time(){
 	ssd1306_SetCursor(16, 105);
 	ssd1306_WriteString("Save", Font_11x18, White);
 	ssd1306_UpdateScreen();
-
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
