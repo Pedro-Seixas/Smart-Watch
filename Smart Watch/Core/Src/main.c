@@ -184,6 +184,7 @@ void show_menu(){
 
 		// Navigate menu options
 		if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+			vTaskDelay(100);
 			main_menu = current_selected;
 			break;
 		}
@@ -363,8 +364,6 @@ void menu_change_time(){
 	ssd1306_SetCursor(16, 105);
 	ssd1306_WriteString("Save", Font_11x18, White);
 	ssd1306_UpdateScreen();
-
-	vTaskDelay(100);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
