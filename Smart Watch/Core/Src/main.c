@@ -184,7 +184,7 @@ void show_menu(){
 
 		// Navigate menu options
 		if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
-			vTaskDelay(100);
+			vTaskDelay(pdMS_TO_TICKS(100));
 			main_menu = current_selected;
 			break;
 		}
@@ -280,12 +280,12 @@ void show_sensors(){
 
 	ssd1306_UpdateScreen();
 
-	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
 		vTaskDelay(pdMS_TO_TICKS(200));
 		main_menu = SHOW_MENU;
 	}
 
-	vTaskDelay(100);
+	vTaskDelay(pdMS_TO_TICKS(200));
 }
 
 void menu_change_time(){
