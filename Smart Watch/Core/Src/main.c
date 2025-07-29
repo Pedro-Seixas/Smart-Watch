@@ -279,13 +279,6 @@ void show_sensors(){
 	 */
 
 	ssd1306_UpdateScreen();
-
-	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
-		vTaskDelay(pdMS_TO_TICKS(200));
-		main_menu = SHOW_MENU;
-	}
-
-	vTaskDelay(pdMS_TO_TICKS(200));
 }
 
 void menu_change_time(){
@@ -785,6 +778,7 @@ void Menu_Task(void *argument)
 	  	  	  menu_change_time();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
+	  		  menu_active = 0;
 	  		  show_sensors();
 	  		  break;
 	  	  case SHOW_MENU:
@@ -794,7 +788,7 @@ void Menu_Task(void *argument)
 	  	  default:
 	  		  break;
 	  }
-	  osDelay(100);
+	  osDelay(10);
   }
   /* USER CODE END 5 */
 }
