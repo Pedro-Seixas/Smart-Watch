@@ -22,4 +22,11 @@ A custom low-power stm32-based wearable smart watch
 <img width="49%" alt="watch-back" src="https://github.com/user-attachments/assets/17446b47-9ef8-4061-af23-15e3b7f4a390" />
 </p>
 
+## Demo (Clock | Menu | Sensors)
+<p align="center">
+<img width="30%" height="387" alt="image" src="https://github.com/user-attachments/assets/857c297d-e652-4a82-933f-75f13358da3d" />
+<img width="30%" height="454" alt="image" src="https://github.com/user-attachments/assets/adb67665-4003-4342-a1a3-4e06c119befe" />
+<img width="30%" height="398" alt="image" src="https://github.com/user-attachments/assets/e8a86234-9931-4d75-8c81-51e6948eb299" />
+</p>
+
 
