@@ -178,54 +178,50 @@ void menu_display_time(){
 }
 
 void show_menu(){
-	menu current_selected = 0;
-	// TODO REMOVE WHILE LOOP
-	while(1){
+	menu static current_selected = DISPLAY_CLOCK;
 
-		// Navigate menu options
-		if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
-			vTaskDelay(pdMS_TO_TICKS(100));
-			main_menu = current_selected;
+	// Navigate menu options
+	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+		vTaskDelay(pdMS_TO_TICKS(200));
+		main_menu = current_selected;
+	}
+
+	ssd1306_Fill(Black);
+
+	// Show which option is selected
+	switch(current_selected){
+		case DISPLAY_CLOCK:
+			ssd1306_SetCursor(2, 0);
+			ssd1306_WriteString(">Clock", Font_7x10, White);
+			ssd1306_SetCursor(2, 24);
+			ssd1306_WriteString("Config", Font_7x10, White);
+			ssd1306_SetCursor(2, 48);
+			ssd1306_WriteString("Sensors", Font_7x10, White);
 			break;
-		}
+		case CHANGE_TIME:
+			ssd1306_SetCursor(2, 0);
+			ssd1306_WriteString("Clock", Font_7x10, White);
+			ssd1306_SetCursor(2, 24);
+			ssd1306_WriteString(">Config", Font_7x10, White);
+			ssd1306_SetCursor(2, 48);
+			ssd1306_WriteString("Sensors", Font_7x10, White);
+			break;
+		case DISPLAY_SENSORS:
+			ssd1306_SetCursor(2, 0);
+			ssd1306_WriteString("Clock", Font_7x10, White);
+			ssd1306_SetCursor(2, 24);
+			ssd1306_WriteString("Config", Font_7x10, White);
+			ssd1306_SetCursor(2, 48);
+			ssd1306_WriteString(">Sensors", Font_7x10, White);
+			break;
+	}
 
-		ssd1306_Fill(Black);
+	ssd1306_UpdateScreen();
 
-		// Show which option is selected
-		switch(current_selected){
-			case DISPLAY_CLOCK:
-				ssd1306_SetCursor(2, 0);
-				ssd1306_WriteString(">Clock", Font_7x10, White);
-				ssd1306_SetCursor(2, 24);
-				ssd1306_WriteString("Config", Font_7x10, White);
-				ssd1306_SetCursor(2, 48);
-				ssd1306_WriteString("Sensors", Font_7x10, White);
-				break;
-			case CHANGE_TIME:
-				ssd1306_SetCursor(2, 0);
-				ssd1306_WriteString("Clock", Font_7x10, White);
-				ssd1306_SetCursor(2, 24);
-				ssd1306_WriteString(">Config", Font_7x10, White);
-				ssd1306_SetCursor(2, 48);
-				ssd1306_WriteString("Sensors", Font_7x10, White);
-				break;
-			case DISPLAY_SENSORS:
-				ssd1306_SetCursor(2, 0);
-				ssd1306_WriteString("Clock", Font_7x10, White);
-				ssd1306_SetCursor(2, 24);
-				ssd1306_WriteString("Config", Font_7x10, White);
-				ssd1306_SetCursor(2, 48);
-				ssd1306_WriteString(">Sensors", Font_7x10, White);
-				break;
-		}
-
-		ssd1306_UpdateScreen();
-
-		if(menu_active && select_pressed){
-			vTaskDelay(pdMS_TO_TICKS(200));
-			current_selected = (current_selected + 1) % 3;
-			select_pressed = 0;
-		}
+	if(menu_active && select_pressed){
+		vTaskDelay(pdMS_TO_TICKS(200));
+		current_selected = (current_selected + 1) % 3;
+		select_pressed = 0;
 	}
 }
 
@@ -817,13 +813,14 @@ void Menu_Task(void *argument)
 	  		  show_sensors();
 	  		  break;
 	  	  case SHOW_MENU:
+	  		  menu_active = 1;
 	  		  // Menu Loop (Only breaks if an option is selected)
 	  		  show_menu();
 	  		  break;
 	  	  default:
 	  		  break;
 	  }
-	  osDelay(10);
+	  vTaskDelay(pdMS_TO_TICKS(100));
   }
   /* USER CODE END 5 */
 }
