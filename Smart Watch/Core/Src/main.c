@@ -279,85 +279,120 @@ void show_sensors(){
 	 */
 
 	ssd1306_UpdateScreen();
+	vTaskDelay(pdMS_TO_TICKS(100));
 }
 
 void menu_change_time(){
-	typedef enum{
-		STATE_EDIT_HOUR,
-		STATE_EDIT_MINUTE,
-		STATE_CONFIRM_FIELD
-	} MenuState;
+    typedef enum{
+        STATE_EDIT_HOUR,
+        STATE_EDIT_MINUTE,
+        STATE_CONFIRM_FIELD
+    } MenuState;
 
-	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+    HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+    HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 
-	char hour[50];
-	char minute[50];
+    char hour[50];
+    char minute[50];
 
-	ssd1306_Fill(Black);
+    ssd1306_Fill(Black);
 
-	static MenuState menu_selected = STATE_EDIT_HOUR;
+    static MenuState menu_selected = STATE_EDIT_HOUR;
 
-	snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
-	snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
+    snprintf(hour, sizeof(hour), "%02d", sTime.Hours);
+    snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
 
-	switch(menu_selected){
-		case STATE_EDIT_HOUR:
-			ssd1306_SetCursor(2, 32);
-			ssd1306_WriteString(">", Font_11x18, White);
+    // Select hour or minute
+    if(menu_active && select_pressed){
+        menu_selected = (menu_selected + 1) % 3;
+        select_pressed = 0;
+    }
 
-			break;
-		case STATE_EDIT_MINUTE:
-			ssd1306_SetCursor(2, 60);
-			ssd1306_WriteString(">", Font_11x18, White);
+    // Auto-repeat button variables
+    static int button_was_pressed = 0;
+    static uint32_t press_start_tick = 0;
+    static uint32_t last_repeat_tick = 0;
 
-			break;
-		case STATE_CONFIRM_FIELD:
-			ssd1306_SetCursor(2, 105);
-			ssd1306_WriteString(">", Font_11x18, White);
-			break;
-	}
+    int button_pressed = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4);
 
-	// Select hour or minute
-	if(menu_active && select_pressed){
-		menu_selected = (menu_selected + 1) % 3;
-	}
+    uint32_t current_tick = osKernelGetTickCount();
 
-	// See which option was selected
-	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) && menu_selected == STATE_EDIT_HOUR){
-		vTaskDelay(pdMS_TO_TICKS(200));
-		if(sTime.Hours < 23){
-			sTime.Hours++;
-		}else{
-			sTime.Hours = 0;
-		}
+    // Auto-repeat timing constants
+    const uint32_t initial_delay = 500 / portTICK_PERIOD_MS;
+    const uint32_t repeat_interval = 100 / portTICK_PERIOD_MS;
 
-		HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	}else if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) && menu_selected == STATE_EDIT_MINUTE){
-		vTaskDelay(pdMS_TO_TICKS(200));
-		if(sTime.Minutes < 59){
-			sTime.Minutes++;
-		}else{
-			sTime.Minutes = 0;
-		}
+    if(button_pressed){
+        if(!button_was_pressed){
+            // Button just pressed, increment once
+            if(menu_selected == STATE_EDIT_HOUR){
+                if(sTime.Hours < 23) sTime.Hours++;
+                else sTime.Hours = 0;
+                HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+            }
+            else if(menu_selected == STATE_EDIT_MINUTE){
+                if(sTime.Minutes < 59) sTime.Minutes++;
+                else sTime.Minutes = 0;
+                HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+            }
+            else if(menu_selected == STATE_CONFIRM_FIELD){
+                main_menu = SHOW_MENU;
+            }
+            press_start_tick = current_tick;
+            last_repeat_tick = current_tick;
+        } else {
+            // Button held down, increment fast
+            if((current_tick - press_start_tick) > initial_delay &&
+               (current_tick - last_repeat_tick) > repeat_interval){
+                // Repeat increment
+                if(menu_selected == STATE_EDIT_HOUR){
+                    if(sTime.Hours < 23) sTime.Hours++;
+                    else sTime.Hours = 0;
+                    HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+                }
+                else if(menu_selected == STATE_EDIT_MINUTE){
+                    if(sTime.Minutes < 59) sTime.Minutes++;
+                    else sTime.Minutes = 0;
+                    HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+                }
 
-		HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	}else if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) && menu_selected == STATE_CONFIRM_FIELD){
-		vTaskDelay(pdMS_TO_TICKS(200));
-		main_menu = SHOW_MENU;
-	}
+                last_repeat_tick = current_tick;
+            }
+        }
+    } else {
+        // Reset
+        button_was_pressed = 0;
+        press_start_tick = 0;
+        last_repeat_tick = 0;
+    }
 
-	select_pressed = 0;
+    button_was_pressed = button_pressed;
 
-	// Show time (hour above minutes)
-	ssd1306_SetCursor(16, 32);
-	ssd1306_WriteString(hour, Font_16x26, White);
-	ssd1306_SetCursor(16, 60);
-	ssd1306_WriteString(minute, Font_16x26, White);
-	ssd1306_SetCursor(16, 105);
-	ssd1306_WriteString("Save", Font_11x18, White);
-	ssd1306_UpdateScreen();
+    // Show cursors ( > ) based on the current state
+    switch(menu_selected){
+        case STATE_EDIT_HOUR:
+            ssd1306_SetCursor(2, 32);
+            ssd1306_WriteString(">", Font_11x18, White);
+            break;
+        case STATE_EDIT_MINUTE:
+            ssd1306_SetCursor(2, 60);
+            ssd1306_WriteString(">", Font_11x18, White);
+            break;
+        case STATE_CONFIRM_FIELD:
+            ssd1306_SetCursor(2, 105);
+            ssd1306_WriteString(">", Font_11x18, White);
+            break;
+    }
+
+    // Show time (hour above minutes)
+    ssd1306_SetCursor(16, 32);
+    ssd1306_WriteString(hour, Font_16x26, White);
+    ssd1306_SetCursor(16, 60);
+    ssd1306_WriteString(minute, Font_16x26, White);
+    ssd1306_SetCursor(16, 105);
+    ssd1306_WriteString("Save", Font_11x18, White);
+    ssd1306_UpdateScreen();
 }
+
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	switch(GPIO_Pin){
