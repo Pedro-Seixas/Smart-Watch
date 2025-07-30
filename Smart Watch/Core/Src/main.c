@@ -97,11 +97,15 @@ void Imu_Task(void *argument);
 /* USER CODE BEGIN 0 */
 
 void LSM6DS3_Init(I2C_HandleTypeDef *hi2c) {
-    uint8_t ctrl1_xl = 0x60;
+    uint8_t ctrl1_xl = 0x20;
     uint8_t ctrl2_g = 0x40;
 
     HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL1_XL, I2C_MEMADD_SIZE_8BIT, &ctrl1_xl, 1, HAL_MAX_DELAY);
     HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, 0x11, I2C_MEMADD_SIZE_8BIT, &ctrl2_g, 1, HAL_MAX_DELAY);
+}
+
+void LSM6DS3_WriteRegister(uint8_t reg, uint8_t value) {
+    HAL_I2C_Mem_Write(&hi2c1, LSM6DS3_ADDR, reg, I2C_MEMADD_SIZE_8BIT, &value, 1, HAL_MAX_DELAY);
 }
 
 void LSM6DS3_ReadAccel(I2C_HandleTypeDef *hi2c, int16_t *ax, int16_t *ay, int16_t *az) {
@@ -140,6 +144,31 @@ void LSM6DS3_ReadTemp(I2C_HandleTypeDef *hi2c, int16_t *temp){
     // Combine high and low bytes
     *temp = (int16_t)(tempData[1] << 8 | tempData[0]);
 
+}
+
+void LSM6DS3_ReadStepsCount(I2C_HandleTypeDef *hi2c, uint16_t *steps){
+	uint8_t stepsData[2];
+	uint16_t STEP_COUNTER_L = 0x4B;
+	char msg[100];
+
+	// Read 2 bytes from STEP_COUNTER_L (Pedometer Sensor)
+	HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, STEP_COUNTER_L, I2C_MEMADD_SIZE_8BIT, stepsData, 2, HAL_MAX_DELAY);
+
+    // Combine high and low bytes
+    *steps = (stepsData[1] << 8 | stepsData[0]);
+
+    // Send to CDC for debugging
+    int len = snprintf(msg, sizeof(msg), "Steps: %u\r\n", *steps);
+    CDC_Transmit_FS((uint8_t*)msg, len);
+}
+
+void LSM6DS3_PedometerInit(I2C_HandleTypeDef *hi2c){
+	uint8_t CTRL10_C = 0x19;
+
+	// FUNC_EN bit 2 and PEDO_EN bit 4
+	uint8_t ctrl10 = (1 << 2 ) | (1 << 4);
+
+    HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT, &ctrl10, 1, HAL_MAX_DELAY);
 }
 
 void SendAccelData(int16_t ax, int16_t ay, int16_t az) {
@@ -449,6 +478,9 @@ int main(void)
 
   // Init accelerometer and gyroscope
   LSM6DS3_Init(&hi2c1);
+
+  // Init Pedometer
+  LSM6DS3_PedometerInit(&hi2c1);
 
   // OLED Screen
   ssd1306_Init();
@@ -797,9 +829,12 @@ void Menu_Task(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   main_menu = DISPLAY_CLOCK;
+  uint16_t steps;
   /* Infinite loop */
   for(;;)
   {
+	  LSM6DS3_ReadStepsCount(&hi2c1, &steps);
+	  LSM6DS3_StepDetection(&hi2c1);
 	  switch(main_menu){
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
