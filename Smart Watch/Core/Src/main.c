@@ -149,17 +149,12 @@ void LSM6DS3_ReadTemp(I2C_HandleTypeDef *hi2c, int16_t *temp){
 void LSM6DS3_ReadStepsCount(I2C_HandleTypeDef *hi2c, uint16_t *steps){
 	uint8_t stepsData[2];
 	uint16_t STEP_COUNTER_L = 0x4B;
-	char msg[100];
 
 	// Read 2 bytes from STEP_COUNTER_L (Pedometer Sensor)
 	HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, STEP_COUNTER_L, I2C_MEMADD_SIZE_8BIT, stepsData, 2, HAL_MAX_DELAY);
 
     // Combine high and low bytes
     *steps = (stepsData[1] << 8 | stepsData[0]);
-
-    // Send to CDC for debugging
-    int len = snprintf(msg, sizeof(msg), "Steps: %u\r\n", *steps);
-    CDC_Transmit_FS((uint8_t*)msg, len);
 }
 
 void LSM6DS3_PedometerInit(I2C_HandleTypeDef *hi2c){
@@ -243,6 +238,8 @@ void show_menu(){
 			ssd1306_SetCursor(2, 48);
 			ssd1306_WriteString(">Sensors", Font_7x10, White);
 			break;
+		default:
+			break;
 	}
 
 	ssd1306_UpdateScreen();
@@ -272,28 +269,39 @@ void show_sensors(){
 	int16_t ax, ay, az, gx, gy, gz, tempInt;
 	char gyro[50];
 	char accel[50];
+	char steps[50];
+	uint16_t step;
 	//char temp[50];
 
 	// Read Sensors
 	LSM6DS3_ReadGyro(&hi2c1, &gx, &gy, &gz);
 	LSM6DS3_ReadAccel(&hi2c1, &ax, &ay, &az);
+	LSM6DS3_ReadStepsCount(&hi2c1, &step);
 	//LSM6DS3_ReadTemp(&hi2c1, &tempInt);
 
 	// Display Sensors
 	ssd1306_Fill(Black);
 
+	// Convert to string
 	snprintf(gyro, sizeof(gyro), "%d,%d,%d", map_to_range(gx), map_to_range(gy), map_to_range(gz));
 	snprintf(accel, sizeof(accel), "%d,%d,%d", map_to_range(ax), map_to_range(ay), map_to_range(az));
+	snprintf(steps, sizeof(steps), "%d", step);
 	//snprintf(temp, sizeof(temp), "%d", convert_to_fahrenheit(tempInt));
 
 	ssd1306_SetCursor(16, 0);
 	ssd1306_WriteString("Gyro", Font_6x8, White);
 	ssd1306_SetCursor(2, 12);
 	ssd1306_WriteString(gyro, Font_6x8, White);
+
 	ssd1306_SetCursor(16, 24);
 	ssd1306_WriteString("Accel", Font_6x8, White);
 	ssd1306_SetCursor(2, 36);
 	ssd1306_WriteString(accel, Font_6x8, White);
+
+	ssd1306_SetCursor(16, 48);
+	ssd1306_WriteString("Steps", Font_6x8, White);
+	ssd1306_SetCursor(2, 60);
+	ssd1306_WriteString(steps, Font_6x8, White);
 
 	// Removed Temperature as it is not reliable
 	/*
@@ -829,12 +837,9 @@ void Menu_Task(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   main_menu = DISPLAY_CLOCK;
-  uint16_t steps;
   /* Infinite loop */
   for(;;)
   {
-	  LSM6DS3_ReadStepsCount(&hi2c1, &steps);
-	  LSM6DS3_StepDetection(&hi2c1);
 	  switch(main_menu){
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
