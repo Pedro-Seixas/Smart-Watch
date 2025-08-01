@@ -97,7 +97,7 @@ void Imu_Task(void *argument);
 /* USER CODE BEGIN 0 */
 
 void LSM6DS3_Init(I2C_HandleTypeDef *hi2c) {
-    uint8_t ctrl1_xl = 0x20;
+    uint8_t ctrl1_xl = 0x40;
     uint8_t ctrl2_g = 0x40;
 
     HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL1_XL, I2C_MEMADD_SIZE_8BIT, &ctrl1_xl, 1, HAL_MAX_DELAY);
@@ -164,6 +164,30 @@ void LSM6DS3_PedometerInit(I2C_HandleTypeDef *hi2c){
 	uint8_t ctrl10 = (1 << 2 ) | (1 << 4);
 
     HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT, &ctrl10, 1, HAL_MAX_DELAY);
+}
+
+void LSM6DS3_WristTiltInit(I2C_HandleTypeDef *hi2c){
+	uint8_t CTRL10_C = 0x19;
+
+	// TILT_EN bit 3
+	uint8_t ctrl10 = (1 << 2)| (1 << 3);
+
+	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT, &ctrl10, 1, HAL_MAX_DELAY);
+}
+
+int LSM6DS3_ReadWrist(I2C_HandleTypeDef *hi2c){
+	uint8_t FUNC_SRC2 = 0x54;
+	uint8_t wrist_tilt_detected;
+	char msg[64];
+	// Read Wrist Tilt
+	HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, FUNC_SRC2, I2C_MEMADD_SIZE_8BIT, &wrist_tilt_detected, 1, HAL_MAX_DELAY);
+
+	if (wrist_tilt_detected & 0x01) {
+		int len = snprintf(msg, sizeof(msg), "Wrist Detected!\r\n");
+		CDC_Transmit_FS((uint8_t*)msg, len);
+	}
+
+	return wrist_tilt_detected;
 }
 
 void SendAccelData(int16_t ax, int16_t ay, int16_t az) {
@@ -488,7 +512,10 @@ int main(void)
   LSM6DS3_Init(&hi2c1);
 
   // Init Pedometer
-  LSM6DS3_PedometerInit(&hi2c1);
+  //LSM6DS3_PedometerInit(&hi2c1);
+
+  // Init Wrist Tilt
+  LSM6DS3_WristTiltInit(&hi2c1);
 
   // OLED Screen
   ssd1306_Init();
@@ -840,23 +867,21 @@ void Menu_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  LSM6DS3_ReadWrist(&hi2c1);
 	  switch(main_menu){
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
 	  		  menu_active = 0;
 	  		  break;
 	  	  case CHANGE_TIME:
-	  	  	  // menu_change_time();
-	  		  ssd1306_SetDisplayOn(1);
+	  	  	  menu_change_time();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
 	  		  menu_active = 0;
-	  		  // show_sensors();
-	  		  ssd1306_SetDisplayOn(0);
+	  		  show_sensors();
 	  		  break;
 	  	  case SHOW_MENU:
 	  		  menu_active = 1;
-	  		  // Menu Loop (Only breaks if an option is selected)
 	  		  show_menu();
 	  		  break;
 	  	  default:
