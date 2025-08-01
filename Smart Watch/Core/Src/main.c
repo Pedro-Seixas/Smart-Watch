@@ -183,7 +183,7 @@ void LSM6DS3_WristTiltInit(I2C_HandleTypeDef *hi2c){
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, A_WRIST_TILT_LAT_C, I2C_MEMADD_SIZE_8BIT, &a_wrist_tilt_lat, 1, HAL_MAX_DELAY);
 }
 
-int LSM6DS3_ReadWrist(I2C_HandleTypeDef *hi2c){
+uint8_t LSM6DS3_ReadWrist(I2C_HandleTypeDef *hi2c){
 	uint8_t FUNC_SRC2 = 0x54;
 	uint8_t wrist_tilt_detected;
 	char msg[64];
@@ -204,7 +204,7 @@ void SendAccelData(int16_t ax, int16_t ay, int16_t az) {
     CDC_Transmit_FS((uint8_t*)msg, len);
 }
 
-void WhoAmI(I2C_HandleTypeDef *hi2c) {
+void lsm6ds3tr_c_who_am_i(I2C_HandleTypeDef *hi2c) {
     uint8_t who_am_i = 0;
     HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, 0x0F, I2C_MEMADD_SIZE_8BIT, &who_am_i, 1, HAL_MAX_DELAY);
 
