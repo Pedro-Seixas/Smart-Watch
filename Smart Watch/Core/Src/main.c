@@ -173,6 +173,13 @@ void LSM6DS3_WristTiltInit(I2C_HandleTypeDef *hi2c){
 	uint8_t ctrl10 = (1 << 2)| (1 << 7);
 
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT, &ctrl10, 1, HAL_MAX_DELAY);
+
+	uint8_t A_WRIST_TILT_LAT_C = 0x50;
+
+	// Latency of 200ms for tilting
+	uint8_t a_wrist_tilt_lat = 0x05;
+
+	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, A_WRIST_TILT_LAT_C, I2C_MEMADD_SIZE_8BIT, &a_wrist_tilt_lat, 1, HAL_MAX_DELAY);
 }
 
 int LSM6DS3_ReadWrist(I2C_HandleTypeDef *hi2c){
