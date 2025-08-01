@@ -174,6 +174,7 @@ void LSM6DS3_WristTiltInit(I2C_HandleTypeDef *hi2c){
 
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT, &ctrl10, 1, HAL_MAX_DELAY);
 
+	// Configure a latency of 200ms
 	uint8_t A_WRIST_TILT_LAT_C = 0x50;
 
 	// Latency of 200ms for tilting
