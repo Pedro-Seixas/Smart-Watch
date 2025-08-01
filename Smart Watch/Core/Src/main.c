@@ -846,11 +846,13 @@ void Menu_Task(void *argument)
 	  		  menu_active = 0;
 	  		  break;
 	  	  case CHANGE_TIME:
-	  	  	  menu_change_time();
+	  	  	  // menu_change_time();
+	  		  ssd1306_SetDisplayOn(1);
 	  		  break;
 	  	  case DISPLAY_SENSORS:
 	  		  menu_active = 0;
-	  		  show_sensors();
+	  		  // show_sensors();
+	  		  ssd1306_SetDisplayOn(0);
 	  		  break;
 	  	  case SHOW_MENU:
 	  		  menu_active = 1;
