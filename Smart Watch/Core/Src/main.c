@@ -170,7 +170,7 @@ void LSM6DS3_WristTiltInit(I2C_HandleTypeDef *hi2c){
 	uint8_t CTRL10_C = 0x19;
 
 	// TILT_EN bit 3
-	uint8_t ctrl10 = (1 << 2)| (1 << 3);
+	uint8_t ctrl10 = (1 << 2)| (1 << 7);
 
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT, &ctrl10, 1, HAL_MAX_DELAY);
 }
