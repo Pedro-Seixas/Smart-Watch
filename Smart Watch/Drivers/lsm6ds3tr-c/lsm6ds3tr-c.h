@@ -21,26 +21,26 @@ typedef struct{
 
 #define CTRL10_C 		0x19
 typedef struct{
-	uint8_t sign_motion_en			: 1;
-	uint8_t pedo_rst_step			: 1;
-	uint8_t func_en					: 1;
-	uint8_t tilt_en					: 1;
-	uint8_t pedo_en 				: 1;
-	uint8_t timer_en				: 1;
-	uint8_t not_used_01				: 1;
-	uint8_t wrist_tilt_en			: 1;
+	uint8_t sign_motion_en	: 1;
+	uint8_t pedo_rst_step	: 1;
+	uint8_t func_en			: 1;
+	uint8_t tilt_en			: 1;
+	uint8_t pedo_en 		: 1;
+	uint8_t timer_en		: 1;
+	uint8_t not_used_01		: 1;
+	uint8_t wrist_tilt_en	: 1;
 
 } lsm6ds3tr_c_ctrl10_t;
 
 #define FUNC_SRC2		0x54
 typedef struct{
-	uint8_t wrist_tilt_ia			: 1;
-	uint8_t not_used_01				: 2;
-	uint8_t slave0_nack				: 1;
-	uint8_t slave1_nack				: 1;
-	uint8_t slave2_nack				: 1;
-	uint8_t slave3_nack				: 1;
-	uint8_t not_used02				: 1;
+	uint8_t wrist_tilt_ia	: 1;
+	uint8_t not_used_01		: 2;
+	uint8_t slave0_nack		: 1;
+	uint8_t slave1_nack		: 1;
+	uint8_t slave2_nack		: 1;
+	uint8_t slave3_nack		: 1;
+	uint8_t not_used02		: 1;
 } lsm6ds3tr_c_func_src2_t;
 
 #define OUTX_L_XL		0x28
