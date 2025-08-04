@@ -117,6 +117,13 @@ void menu_display_time(){
 	ssd1306_SetCursor(16, 60);
 	ssd1306_WriteString(minute, Font_16x26, White);
 	ssd1306_UpdateScreen();
+
+	// Go to menu
+	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+		vTaskDelay(pdMS_TO_TICKS(300));
+		main_menu = SHOW_MENU;
+		button_last_pressed = HAL_GetTick();
+	}
 }
 
 void show_menu(){
@@ -162,7 +169,7 @@ void show_menu(){
 
 	ssd1306_UpdateScreen();
 
-	if(menu_active && select_pressed){
+	if(select_pressed){
 		current_selected = (current_selected + 1) % 3;
 		select_pressed = 0;
 	}
@@ -253,7 +260,7 @@ void menu_change_time(){
     snprintf(minute, sizeof(minute), "%02d", sTime.Minutes);
 
     // Select hour or minute
-    if(menu_active && select_pressed){
+    if(select_pressed){
         menu_selected = (menu_selected + 1) % 3;
         select_pressed = 0;
     }
@@ -351,19 +358,15 @@ void menu_inactive(){
 	if(lsm6ds3tr_c_read_wrist(&hi2c1) || select_pressed || (!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4))){
 		main_menu = DISPLAY_CLOCK;
 		ssd1306_SetDisplayOn(1);
+		button_last_pressed = HAL_GetTick();
 	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	switch(GPIO_Pin){
 		case GPIO_PIN_0:
-			if (!menu_active) {
-				menu_active = 1;
-				main_menu = SHOW_MENU;
-			}else {
-				select_pressed = 1;
-				button_last_pressed = HAL_GetTick();
-			}
+			select_pressed = 1;
+			button_last_pressed = HAL_GetTick();
 			break;
 		default:
 			break;
