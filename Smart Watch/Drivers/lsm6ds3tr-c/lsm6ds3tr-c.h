@@ -51,6 +51,11 @@ typedef struct{
 #define OUTX_L_G 		0x22
 #define OUT_TEMP_L  	0x20
 #define STEP_COUNTER_L	0x4B
+#define TAP_CFG			0x58
+#define TAP_SRC			0x1C
+#define TAP_THS_6D		0x59
+#define INT_DUR2		0x5A
+#define WAKE_UP_THS		0x5B
 
 // Functions
 void lsm6ds3tr_c_write_register(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t value);
@@ -62,7 +67,9 @@ void lsm6ds3tr_c_read_temp(I2C_HandleTypeDef *hi2c, int16_t *temp);
 void lsm6ds3tr_c_read_step_count(I2C_HandleTypeDef *hi2c, uint16_t *steps);
 void lsm6ds3tr_c_pedometer_init(I2C_HandleTypeDef *hi2c);
 void lsm6ds3tr_c_wrist_tilt_init(I2C_HandleTypeDef *hi2c);
+void lsm6ds3tr_c_tap_cfg(I2C_HandleTypeDef *hi2c);
 uint8_t lsm6ds3tr_c_who_am_i(I2C_HandleTypeDef *hi2c);
 uint8_t lsm6ds3tr_c_read_wrist(I2C_HandleTypeDef *hi2c);
+uint8_t lsm6ds3tr_c_get_tap(I2C_HandleTypeDef *hi2c);
 
 #endif /* LSM6DS3TR_C_LSM6DS3TR_C_H_ */

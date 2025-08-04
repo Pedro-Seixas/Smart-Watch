@@ -355,7 +355,7 @@ void menu_inactive(){
 	ssd1306_SetDisplayOn(0);
 
 	// If any event occurs, turn on the display
-	if(lsm6ds3tr_c_read_wrist(&hi2c1) || select_pressed || (!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4))){
+	if(lsm6ds3tr_c_read_wrist(&hi2c1) || select_pressed || (!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)) || lsm6ds3tr_c_get_tap(&hi2c1)){
 		main_menu = DISPLAY_CLOCK;
 		ssd1306_SetDisplayOn(1);
 		button_last_pressed = HAL_GetTick();
@@ -423,6 +423,9 @@ int main(void)
 
   // Init Wrist Tilt
   lsm6ds3tr_c_wrist_tilt_init(&hi2c1);
+
+  // Tap Init
+  lsm6ds3tr_c_tap_cfg(&hi2c1);
 
   // OLED Screen
   ssd1306_Init();
@@ -782,6 +785,7 @@ void Menu_Task(void *argument)
 	  if ((HAL_GetTick() - button_last_pressed) >= delayMs) {
 	      main_menu = INACTIVE;
 	      button_last_pressed = HAL_GetTick();
+	      select_pressed = 0;
 	  }
 
 	  switch(main_menu){
