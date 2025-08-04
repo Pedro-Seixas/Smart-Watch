@@ -56,6 +56,7 @@ typedef struct{
 #define TAP_THS_6D		0x59
 #define INT_DUR2		0x5A
 #define WAKE_UP_THS		0x5B
+#define MD1_CFG			0x5E
 
 // Functions
 void lsm6ds3tr_c_write_register(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t value);
