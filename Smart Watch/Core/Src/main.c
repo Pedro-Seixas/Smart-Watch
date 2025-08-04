@@ -51,6 +51,7 @@
  volatile menu main_menu;
  volatile uint8_t menu_active = 0;
  volatile uint8_t select_pressed = 0;
+ volatile uint32_t button_last_pressed;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -123,8 +124,8 @@ void show_menu(){
 
 	// Navigate menu options
 	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
-		vTaskDelay(pdMS_TO_TICKS(200));
 		main_menu = current_selected;
+		button_last_pressed = HAL_GetTick();
 	}
 
 	ssd1306_Fill(Black);
@@ -162,7 +163,6 @@ void show_menu(){
 	ssd1306_UpdateScreen();
 
 	if(menu_active && select_pressed){
-		vTaskDelay(pdMS_TO_TICKS(200));
 		current_selected = (current_selected + 1) % 3;
 		select_pressed = 0;
 	}
@@ -272,6 +272,7 @@ void menu_change_time(){
     const uint32_t repeat_interval = 100 / portTICK_PERIOD_MS;
 
     if(button_pressed){
+    	button_last_pressed = HAL_GetTick();
         if(!button_was_pressed){
             // Button just pressed, increment once
             if(menu_selected == STATE_EDIT_HOUR){
@@ -346,7 +347,8 @@ void menu_change_time(){
 void menu_inactive(){
 	ssd1306_SetDisplayOn(0);
 
-	if(lsm6ds3tr_c_read_wrist(&hi2c1)){
+	// If any event occurs, turn on the display
+	if(lsm6ds3tr_c_read_wrist(&hi2c1) || select_pressed || (!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4))){
 		main_menu = DISPLAY_CLOCK;
 		ssd1306_SetDisplayOn(1);
 	}
@@ -360,6 +362,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 				main_menu = SHOW_MENU;
 			}else {
 				select_pressed = 1;
+				button_last_pressed = HAL_GetTick();
 			}
 			break;
 		default:
@@ -767,29 +770,28 @@ void Menu_Task(void *argument)
   main_menu = DISPLAY_CLOCK;
 
   // Timer for turn off the screen if watch is not being used
-  uint32_t startTick = HAL_GetTick();
+  button_last_pressed = HAL_GetTick();
   uint32_t delayMs = 5000; // 1 second delay
   /* Infinite loop */
   for(;;)
   {
-	  if ((HAL_GetTick() - startTick) >= delayMs) {
+	  // Screen Display Timer
+	  if ((HAL_GetTick() - button_last_pressed) >= delayMs) {
 	      main_menu = INACTIVE;
-	      startTick = HAL_GetTick();
+	      button_last_pressed = HAL_GetTick();
 	  }
+
 	  switch(main_menu){
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
-	  		  menu_active = 0;
 	  		  break;
 	  	  case CHANGE_TIME:
 	  	  	  menu_change_time();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
-	  		  menu_active = 0;
 	  		  show_sensors();
 	  		  break;
 	  	  case SHOW_MENU:
-	  		  menu_active = 1;
 	  		  show_menu();
 	  		  break;
 	  	  case INACTIVE:
