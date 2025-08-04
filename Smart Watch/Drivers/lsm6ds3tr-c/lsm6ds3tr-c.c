@@ -97,14 +97,12 @@ void lsm6ds3tr_c_wrist_tilt_init(I2C_HandleTypeDef *hi2c){
 }
 
 void lsm6ds3tr_c_tap_cfg(I2C_HandleTypeDef *hi2c){
-	// Route tap detection to INT1
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, 0x5E, I2C_MEMADD_SIZE_8BIT, 0x40, 1, HAL_MAX_DELAY);
 	// Enable tap detection
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, TAP_CFG, I2C_MEMADD_SIZE_8BIT, 0x0E, 1, HAL_MAX_DELAY);
 
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, TAP_THS_6D, I2C_MEMADD_SIZE_8BIT, 0x03, 1, HAL_MAX_DELAY);
+	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, TAP_THS_6D, I2C_MEMADD_SIZE_8BIT, 0x0F, 1, HAL_MAX_DELAY);
 
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, INT_DUR2, I2C_MEMADD_SIZE_8BIT, 0x10, 1, HAL_MAX_DELAY);
+	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, INT_DUR2, I2C_MEMADD_SIZE_8BIT, 0x13, 1, HAL_MAX_DELAY);
 
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, WAKE_UP_THS, I2C_MEMADD_SIZE_8BIT, 0x80, 1, HAL_MAX_DELAY);
 }
@@ -140,7 +138,7 @@ uint8_t lsm6ds3tr_c_read_wrist(I2C_HandleTypeDef *hi2c){
 }
 
 uint8_t lsm6ds3tr_c_get_tap(I2C_HandleTypeDef *hi2c){
-	uint8_t tap_detected = 0;
+	uint8_t tap_detected;
 
 	// Read Tap
 	HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, TAP_SRC, I2C_MEMADD_SIZE_8BIT, &tap_detected, 1, HAL_MAX_DELAY);
