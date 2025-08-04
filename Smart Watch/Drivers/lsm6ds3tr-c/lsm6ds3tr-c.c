@@ -112,12 +112,15 @@ uint8_t lsm6ds3tr_c_who_am_i(I2C_HandleTypeDef *hi2c){
 uint8_t lsm6ds3tr_c_read_wrist(I2C_HandleTypeDef *hi2c){
 	uint8_t wrist_tilt_detected;
 	char msg[64];
+
 	// Read Wrist Tilt
 	HAL_I2C_Mem_Read(hi2c, LSM6DS3_ADDR, FUNC_SRC2, I2C_MEMADD_SIZE_8BIT, &wrist_tilt_detected, 1, HAL_MAX_DELAY);
 
 	if (wrist_tilt_detected & 0x01) {
 		int len = snprintf(msg, sizeof(msg), "Wrist Detected!\r\n");
 		CDC_Transmit_FS((uint8_t*)msg, len);
+	}else{
+		wrist_tilt_detected = 0;
 	}
 
 	return wrist_tilt_detected;

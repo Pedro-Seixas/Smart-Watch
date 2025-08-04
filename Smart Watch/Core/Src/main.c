@@ -43,7 +43,8 @@
 	  DISPLAY_CLOCK,
 	  CHANGE_TIME,
 	  DISPLAY_SENSORS,
-	  SHOW_MENU
+	  SHOW_MENU,
+	  INACTIVE
  } menu;
 
  // Flags for the menu
@@ -342,6 +343,14 @@ void menu_change_time(){
     ssd1306_UpdateScreen();
 }
 
+void menu_inactive(){
+	ssd1306_SetDisplayOn(0);
+
+	if(lsm6ds3tr_c_read_wrist(&hi2c1)){
+		main_menu = DISPLAY_CLOCK;
+		ssd1306_SetDisplayOn(1);
+	}
+}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	switch(GPIO_Pin){
@@ -756,9 +765,17 @@ void Menu_Task(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   main_menu = DISPLAY_CLOCK;
+
+  // Timer for turn off the screen if watch is not being used
+  uint32_t startTick = HAL_GetTick();
+  uint32_t delayMs = 5000; // 1 second delay
   /* Infinite loop */
   for(;;)
   {
+	  if ((HAL_GetTick() - startTick) >= delayMs) {
+	      main_menu = INACTIVE;
+	      startTick = HAL_GetTick();
+	  }
 	  switch(main_menu){
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
@@ -774,6 +791,9 @@ void Menu_Task(void *argument)
 	  	  case SHOW_MENU:
 	  		  menu_active = 1;
 	  		  show_menu();
+	  		  break;
+	  	  case INACTIVE:
+	  		  menu_inactive();
 	  		  break;
 	  	  default:
 	  		  break;
