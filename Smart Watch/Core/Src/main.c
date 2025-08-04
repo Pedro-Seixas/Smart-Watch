@@ -404,7 +404,7 @@ int main(void)
   lsm6ds3tr_c_init(&hi2c1);
 
   // Init Pedometer
-  //LSM6DS3_PedometerInit(&hi2c1);
+  lsm6ds3tr_c_pedometer_init(&hi2c1);
 
   // Init Wrist Tilt
   lsm6ds3tr_c_wrist_tilt_init(&hi2c1);
@@ -759,7 +759,6 @@ void Menu_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  lsm6ds3tr_c_read_wrist(&hi2c1);
 	  switch(main_menu){
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
