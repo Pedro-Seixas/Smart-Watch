@@ -49,8 +49,8 @@ typedef struct{
 
 #define OUTX_L_XL		0x28
 #define OUTX_L_G 		0x22
-#define OUT_TEMP_L  	0x20
-#define STEP_COUNTER_L	0x4B
+#define OUT_TEMP_L  		0x20
+#define STEP_COUNTER_L		0x4B
 #define TAP_CFG			0x58
 #define TAP_SRC			0x1C
 #define TAP_THS_6D		0x59
