@@ -100,21 +100,27 @@ void lsm6ds3tr_c_tap_cfg(I2C_HandleTypeDef *hi2c){
 	// Enable tap detection
 	uint8_t ctrl1_xl = 0x60;
 	uint8_t tap_cfg = 0x8E;
-	uint8_t tap_ths_6d = 0x85;
-	uint8_t int_dur2 = 0x7F;
+	uint8_t tap_ths_6d = 0x8F;
+	uint8_t int_dur2 = 0x7D;
 	uint8_t wake_up_ths = 0x80;
 	uint8_t md1_cfg = 0x08;
 
+	// Accel Adjustment
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL1_XL, I2C_MEMADD_SIZE_8BIT, &ctrl1_xl, 1, HAL_MAX_DELAY);
 
+	// Tap Init
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, TAP_CFG, I2C_MEMADD_SIZE_8BIT, &tap_cfg, 1, HAL_MAX_DELAY);
 
+	// Tap intensity threshold
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, TAP_THS_6D, I2C_MEMADD_SIZE_8BIT, &tap_ths_6d, 1, HAL_MAX_DELAY);
 
+	// Tap duration / quiet time
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, INT_DUR2, I2C_MEMADD_SIZE_8BIT, &int_dur2, 1, HAL_MAX_DELAY);
 
+	// Allow double taps
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, WAKE_UP_THS, I2C_MEMADD_SIZE_8BIT, &wake_up_ths, 1, HAL_MAX_DELAY);
 
+	// Mapping interrupt to INT1
 	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, MD1_CFG, I2C_MEMADD_SIZE_8BIT, &md1_cfg, 1, HAL_MAX_DELAY);
 }
 
