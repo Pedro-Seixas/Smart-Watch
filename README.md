@@ -8,6 +8,7 @@ A custom low-power stm32-based wearable smart watch
 - Powered by 3.7V battery or USB
 - 2 programmable switches
 - Real-Time Clock
+- Tap Sensor
 
 ## Pinout Diagram
 <img width="580" height="494" alt="image" src="https://github.com/user-attachments/assets/1f539aa1-9339-484d-a4bd-61f70fc74c2f" />
