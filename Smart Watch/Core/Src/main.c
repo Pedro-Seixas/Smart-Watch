@@ -26,8 +26,6 @@
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
 #include "lsm6ds3tr-c.h"
-#define LSM6DS3_ADDR  (0x6B << 1)
-#define CTRL1_XL             0x10
 
 /* USER CODE END Includes */
 
@@ -175,22 +173,8 @@ void show_menu(){
 	}
 }
 
-int8_t map_to_range(int16_t value) {
-    // Map from int16_t to -90,90
-    if (value >= 0)
-        return (int8_t)(((int32_t)value * 90) / 32767);
-    else
-        return (int8_t)(((int32_t)value * 90) / 32768);
-}
-
-int convert_to_fahrenheit(int16_t rawTemp) {
-    float tempC = 25.0f + ((float)rawTemp / 16.0f);
-    float tempF = tempC * 1.8f + 32.0f;
-    return (int)(tempC);
-}
-
 void show_sensors(){
-	int16_t ax, ay, az, gx, gy, gz, tempInt;
+	int16_t ax, ay, az, gx, gy, gz;
 	char gyro[50];
 	char accel[50];
 	char steps[50];

@@ -88,14 +88,14 @@ void lsm6ds3tr_c_pedometer_init() {
 	ctrl10.pedo_en = 1;
 	ctrl10.func_en = 1;
 
-	lsm6ds3tr_c_write_register(CTRL10_C, (uint8_t *)&ctrl10);
+	lsm6ds3tr_c_write_register(CTRL10_C, &ctrl10.value);
 }
 
 void lsm6ds3tr_c_wrist_tilt_init() {
 	lsm6ds3tr_c_ctrl10_t ctrl10;
 	ctrl10.wrist_tilt_en = 1;
 
-	lsm6ds3tr_c_ctrl10_set(*(uint8_t*)&ctrl10);
+	lsm6ds3tr_c_ctrl10_set(ctrl10.value);
 
 	// Configure a latency of 200ms
 	uint8_t A_WRIST_TILT_LAT_C = 0x50;
@@ -185,4 +185,18 @@ uint8_t lsm6ds3tr_c_get_tap() {
 	int len = snprintf(msg, sizeof(msg), "WHO_AM_I: %d\r\n", tap_detected);
 	CDC_Transmit_FS((uint8_t*) msg, len);
 	return tap_detected;
+}
+
+int8_t map_to_range(int16_t value) {
+    // Map from int16_t to -90,90
+    if (value >= 0)
+        return (int8_t)(((int32_t)value * 90) / 32767);
+    else
+        return (int8_t)(((int32_t)value * 90) / 32768);
+}
+
+int convert_to_fahrenheit(int16_t rawTemp) {
+    float tempC = 25.0f + ((float)rawTemp / 16.0f);
+    // float tempF = tempC * 1.8f + 32.0f;
+    return (int)(tempC);
 }

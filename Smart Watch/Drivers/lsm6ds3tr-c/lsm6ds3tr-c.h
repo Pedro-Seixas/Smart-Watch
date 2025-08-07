@@ -26,27 +26,32 @@ typedef struct{
 } lsm6ds3tr_c_ctrl1_xl_t;
 
 #define CTRL10_C 		0x19
-typedef struct{
-	uint8_t sign_motion_en		: 1;
-	uint8_t pedo_rst_step		: 1;
-	uint8_t func_en			: 1;
-	uint8_t tilt_en			: 1;
-	uint8_t pedo_en 		: 1;
-	uint8_t timer_en		: 1;
-	uint8_t not_used_01		: 1;
-	uint8_t wrist_tilt_en	: 1;
-
-} lsm6ds3tr_c_ctrl10_t;
+typedef union{
+	struct{
+		uint8_t sign_motion_en		: 1;
+		uint8_t pedo_rst_step		: 1;
+		uint8_t func_en			: 1;
+		uint8_t tilt_en			: 1;
+		uint8_t pedo_en 		: 1;
+		uint8_t timer_en		: 1;
+		uint8_t not_used_01		: 1;
+		uint8_t wrist_tilt_en	: 1;
+	};
+	uint8_t value;
+} lsm6ds3tr_c_ctrl10_t;;
 
 #define FUNC_SRC2		0x54
-typedef struct{
-	uint8_t wrist_tilt_ia		: 1;
-	uint8_t not_used_01		: 2;
-	uint8_t slave0_nack		: 1;
-	uint8_t slave1_nack		: 1;
-	uint8_t slave2_nack		: 1;
-	uint8_t slave3_nack		: 1;
-	uint8_t not_used02		: 1;
+typedef union{
+	struct{
+		uint8_t wrist_tilt_ia		: 1;
+		uint8_t not_used_01		: 2;
+		uint8_t slave0_nack		: 1;
+		uint8_t slave1_nack		: 1;
+		uint8_t slave2_nack		: 1;
+		uint8_t slave3_nack		: 1;
+		uint8_t not_used02		: 1;
+	};
+	uint8_t value;
 } lsm6ds3tr_c_func_src2_t;
 
 #define LSM6DS3_ADDR  (0x6B << 1)
@@ -79,4 +84,7 @@ uint8_t lsm6ds3tr_c_who_am_i();
 uint8_t lsm6ds3tr_c_read_wrist();
 uint8_t lsm6ds3tr_c_get_tap();
 
+// Helper Functions
+int8_t map_to_range(int16_t value);
+int convert_to_fahrenheit(int16_t rawTemp);
 #endif /* LSM6DS3TR_C_LSM6DS3TR_C_H_ */
