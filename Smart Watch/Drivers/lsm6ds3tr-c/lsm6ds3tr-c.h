@@ -17,7 +17,7 @@ extern I2C_HandleTypeDef hi2c1;
 
 // Registers
 
-#define CTRL1_XL 		0x10U
+#define CTRL1_XL 		0x10
 typedef struct{
 	uint8_t bw0_xl 			: 1;
 	uint8_t lpf1_bw_sel	 	: 1;
@@ -28,8 +28,8 @@ typedef struct{
 #define CTRL10_C 		0x19
 typedef union{
 	struct{
-		uint8_t sign_motion_en		: 1;
-		uint8_t pedo_rst_step		: 1;
+		uint8_t sign_motion_en	: 1;
+		uint8_t pedo_rst_step	: 1;
 		uint8_t func_en			: 1;
 		uint8_t tilt_en			: 1;
 		uint8_t pedo_en 		: 1;
@@ -43,7 +43,7 @@ typedef union{
 #define FUNC_SRC2		0x54
 typedef union{
 	struct{
-		uint8_t wrist_tilt_ia		: 1;
+		uint8_t wrist_tilt_ia	: 1;
 		uint8_t not_used_01		: 2;
 		uint8_t slave0_nack		: 1;
 		uint8_t slave1_nack		: 1;
@@ -59,8 +59,8 @@ typedef union{
 #define WHO_AM_I_VALUE	0x6A
 #define OUTX_L_XL		0x28
 #define OUTX_L_G 		0x22
-#define OUT_TEMP_L  		0x20
-#define STEP_COUNTER_L		0x4B
+#define OUT_TEMP_L  	0x20
+#define STEP_COUNTER_L	0x4B
 #define TAP_CFG			0x58
 #define TAP_SRC			0x1C
 #define TAP_THS_6D		0x59
