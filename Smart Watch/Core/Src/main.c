@@ -127,13 +127,19 @@ void menu_display_time(){
 void show_menu(){
 	menu static current_selected = DISPLAY_CLOCK;
 
+	ssd1306_Fill(Black);
+
 	// Navigate menu options
+	if(select_pressed){
+		current_selected = (current_selected + 1) % 3;
+		select_pressed = 0;
+	}
+
+	// Select menu option
 	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
 		main_menu = current_selected;
 		button_last_pressed = HAL_GetTick();
 	}
-
-	ssd1306_Fill(Black);
 
 	// Show which option is selected
 	switch(current_selected){
@@ -166,11 +172,6 @@ void show_menu(){
 	}
 
 	ssd1306_UpdateScreen();
-
-	if(select_pressed){
-		current_selected = (current_selected + 1) % 3;
-		select_pressed = 0;
-	}
 }
 
 void show_sensors(){
@@ -180,6 +181,13 @@ void show_sensors(){
 	char steps[50];
 	uint16_t step;
 	//char temp[50];
+
+	// Go to menu
+	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
+		vTaskDelay(pdMS_TO_TICKS(300));
+		main_menu = SHOW_MENU;
+		button_last_pressed = HAL_GetTick();
+	}
 
 	// Read Sensors
 	lsm6ds3tr_c_read_gyro(&gx, &gy, &gz);
@@ -218,7 +226,6 @@ void show_sensors(){
 	ssd1306_SetCursor(16, 58);
 	ssd1306_WriteString(temp, Font_6x8, White);
 	 */
-
 	ssd1306_UpdateScreen();
 	vTaskDelay(pdMS_TO_TICKS(100));
 }
