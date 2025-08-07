@@ -108,15 +108,11 @@ void lsm6ds3tr_c_wrist_tilt_init() {
 
 void lsm6ds3tr_c_tap_cfg() {
 	// Enable tap detection
-	uint8_t ctrl1_xl = 0x60;
 	uint8_t tap_cfg = 0x8E;
 	uint8_t tap_ths_6d = 0x8F;
 	uint8_t int_dur2 = 0x7D;
 	uint8_t wake_up_ths = 0x80;
 	uint8_t md1_cfg = 0x08;
-
-	// Accel Adjustment
-	lsm6ds3tr_c_write_register(CTRL1_XL, &ctrl1_xl);
 
 	// Tap Init
 	lsm6ds3tr_c_write_register(TAP_CFG, &tap_cfg);
@@ -130,7 +126,7 @@ void lsm6ds3tr_c_tap_cfg() {
 	// Allow double taps
 	lsm6ds3tr_c_write_register(WAKE_UP_THS, &wake_up_ths);
 
-	// Mapping interrupt to INT1
+	// Mapping double taps interrupt to INT1
 	lsm6ds3tr_c_write_register(MD1_CFG, &md1_cfg);
 }
 

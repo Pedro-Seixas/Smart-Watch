@@ -42,6 +42,7 @@
 	  CHANGE_TIME,
 	  DISPLAY_SENSORS,
 	  SHOW_MENU,
+	  ACTIVE,
 	  INACTIVE
  } menu;
 
@@ -346,11 +347,16 @@ void menu_inactive(){
 	ssd1306_SetDisplayOn(0);
 
 	// If any event occurs, turn on the display
-	if(lsm6ds3tr_c_read_wrist(&hi2c1) || select_pressed || (!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)) || lsm6ds3tr_c_get_tap(&hi2c1)){
-		main_menu = DISPLAY_CLOCK;
-		ssd1306_SetDisplayOn(1);
-		button_last_pressed = HAL_GetTick();
+	if(lsm6ds3tr_c_read_wrist(&hi2c1) || select_pressed || (!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4))){
+		main_menu = ACTIVE;
 	}
+}
+
+void menu_active(){
+	  ssd1306_SetDisplayOn(1);
+	  button_last_pressed = HAL_GetTick();
+	  select_pressed = 0;
+	  main_menu = DISPLAY_CLOCK;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -360,7 +366,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			button_last_pressed = HAL_GetTick();
 			break;
 		case GPIO_PIN_15:
-			select_pressed = 1;
+			if(ssd1306_GetDisplayOn()){
+				main_menu = INACTIVE;
+			}else{
+				main_menu = ACTIVE;
+			}
 			break;
 		default:
 			break;
@@ -780,7 +790,7 @@ void Menu_Task(void *argument)
 
   // Timer for turn off the screen if watch is not being used
   button_last_pressed = HAL_GetTick();
-  uint32_t delayMs = 15000;
+  uint32_t delayMs = 5000;
   /* Infinite loop */
   for(;;)
   {
@@ -806,6 +816,9 @@ void Menu_Task(void *argument)
 	  		  break;
 	  	  case INACTIVE:
 	  		  menu_inactive();
+	  		  break;
+	  	  case ACTIVE:
+	  		  menu_active();
 	  		  break;
 	  	  default:
 	  		  break;
