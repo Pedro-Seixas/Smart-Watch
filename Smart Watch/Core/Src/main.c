@@ -789,7 +789,7 @@ void Menu_Task(void *argument)
 
   // Timer for turn off the screen if watch is not being used
   button_last_pressed = HAL_GetTick();
-  uint32_t delayMs = 10000;
+  uint32_t delayMs = 15000;
   /* Infinite loop */
   for(;;)
   {

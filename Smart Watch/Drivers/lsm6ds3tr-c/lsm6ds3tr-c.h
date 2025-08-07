@@ -58,9 +58,10 @@ typedef struct{
 #define INT_DUR2		0x5A
 #define WAKE_UP_THS		0x5B
 #define MD1_CFG			0x5E
+#define CTRL2_G			0x11
 
 // Functions
-void lsm6ds3tr_c_write_register(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t value);
+void lsm6ds3tr_c_write_register(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t* value);
 void lsm6ds3tr_c_init(I2C_HandleTypeDef *hi2c); // TODO separate into accel and gyro init
 void lsm6ds3tr_c_ctrl10_set(I2C_HandleTypeDef *hi2c, uint8_t bits_to_set);
 void lsm6ds3tr_c_read_accel(I2C_HandleTypeDef *hi2c, int16_t *ax, int16_t *ay, int16_t *az);

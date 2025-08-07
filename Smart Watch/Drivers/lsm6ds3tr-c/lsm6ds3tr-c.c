@@ -7,8 +7,8 @@
 #include "lsm6ds3tr-c.h"
 
 void lsm6ds3tr_c_write_register(I2C_HandleTypeDef *hi2c, uint8_t reg,
-		uint8_t value) {
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, reg, I2C_MEMADD_SIZE_8BIT, &value, 1,
+		uint8_t* value) {
+	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, reg, I2C_MEMADD_SIZE_8BIT, value, 1,
 			HAL_MAX_DELAY);
 }
 
@@ -16,10 +16,9 @@ void lsm6ds3tr_c_init(I2C_HandleTypeDef *hi2c) {
 	uint8_t ctrl1_xl = 0x60;
 	uint8_t ctrl2_g = 0x40;
 
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL1_XL, I2C_MEMADD_SIZE_8BIT,
-			&ctrl1_xl, 1, HAL_MAX_DELAY);
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, 0x11, I2C_MEMADD_SIZE_8BIT, &ctrl2_g,
-			1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, CTRL1_XL, &ctrl1_xl);
+
+	lsm6ds3tr_c_write_register(hi2c, CTRL2_G, &ctrl2_g);
 }
 
 void lsm6ds3tr_c_ctrl10_set(I2C_HandleTypeDef *hi2c, uint8_t bits_to_set) {
@@ -31,8 +30,7 @@ void lsm6ds3tr_c_ctrl10_set(I2C_HandleTypeDef *hi2c, uint8_t bits_to_set) {
 
 	ctrl10 |= bits_to_set;
 
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT,
-			&ctrl10, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, CTRL10_C, &ctrl10);
 }
 
 void lsm6ds3tr_c_read_accel(I2C_HandleTypeDef *hi2c, int16_t *ax, int16_t *ay,
@@ -90,8 +88,7 @@ void lsm6ds3tr_c_pedometer_init(I2C_HandleTypeDef *hi2c) {
 	ctrl10.pedo_en = 1;
 	ctrl10.func_en = 1;
 
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL10_C, I2C_MEMADD_SIZE_8BIT,
-			&ctrl10, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, CTRL10_C, &ctrl10);
 }
 
 void lsm6ds3tr_c_wrist_tilt_init(I2C_HandleTypeDef *hi2c) {
@@ -106,8 +103,7 @@ void lsm6ds3tr_c_wrist_tilt_init(I2C_HandleTypeDef *hi2c) {
 	// Latency of 200ms for tilting
 	uint8_t a_wrist_tilt_lat = 0x05;
 
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, A_WRIST_TILT_LAT_C,
-			I2C_MEMADD_SIZE_8BIT, &a_wrist_tilt_lat, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, A_WRIST_TILT_LAT_C, &a_wrist_tilt_lat);
 }
 
 void lsm6ds3tr_c_tap_cfg(I2C_HandleTypeDef *hi2c) {
@@ -120,28 +116,22 @@ void lsm6ds3tr_c_tap_cfg(I2C_HandleTypeDef *hi2c) {
 	uint8_t md1_cfg = 0x08;
 
 	// Accel Adjustment
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, CTRL1_XL, I2C_MEMADD_SIZE_8BIT,
-			&ctrl1_xl, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, CTRL1_XL, &ctrl1_xl);
 
 	// Tap Init
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, TAP_CFG, I2C_MEMADD_SIZE_8BIT,
-			&tap_cfg, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, TAP_CFG, &tap_cfg);
 
 	// Tap intensity threshold
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, TAP_THS_6D, I2C_MEMADD_SIZE_8BIT,
-			&tap_ths_6d, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, TAP_THS_6D, &tap_ths_6d);
 
 	// Tap duration / quiet time
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, INT_DUR2, I2C_MEMADD_SIZE_8BIT,
-			&int_dur2, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, INT_DUR2, &int_dur2);
 
 	// Allow double taps
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, WAKE_UP_THS, I2C_MEMADD_SIZE_8BIT,
-			&wake_up_ths, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, WAKE_UP_THS, &wake_up_ths);
 
 	// Mapping interrupt to INT1
-	HAL_I2C_Mem_Write(hi2c, LSM6DS3_ADDR, MD1_CFG, I2C_MEMADD_SIZE_8BIT,
-			&md1_cfg, 1, HAL_MAX_DELAY);
+	lsm6ds3tr_c_write_register(hi2c, MD1_CFG, &md1_cfg);
 }
 
 uint8_t lsm6ds3tr_c_who_am_i(I2C_HandleTypeDef *hi2c) {
