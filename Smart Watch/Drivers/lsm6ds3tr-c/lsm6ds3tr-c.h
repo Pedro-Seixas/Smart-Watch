@@ -7,9 +7,13 @@
 
 #ifndef LSM6DS3TR_C_LSM6DS3TR_C_H_
 #define LSM6DS3TR_C_LSM6DS3TR_C_H_
+
 #include <stdint.h>
 #include <stdio.h>
 #include "stm32l0xx_hal.h"
+
+extern I2C_HandleTypeDef hi2c1;
+#define LSM6DS3TR_C_I2C_PORT	hi2c1
 
 // Registers
 
@@ -61,18 +65,18 @@ typedef struct{
 #define CTRL2_G			0x11
 
 // Functions
-void lsm6ds3tr_c_write_register(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t* value);
-void lsm6ds3tr_c_init(I2C_HandleTypeDef *hi2c); // TODO separate into accel and gyro init
-void lsm6ds3tr_c_ctrl10_set(I2C_HandleTypeDef *hi2c, uint8_t bits_to_set);
-void lsm6ds3tr_c_read_accel(I2C_HandleTypeDef *hi2c, int16_t *ax, int16_t *ay, int16_t *az);
-void lsm6ds3tr_c_read_gyro(I2C_HandleTypeDef *hi2c, int16_t *gx, int16_t *gy, int16_t *gz);
-void lsm6ds3tr_c_read_temp(I2C_HandleTypeDef *hi2c, int16_t *temp);
-void lsm6ds3tr_c_read_step_count(I2C_HandleTypeDef *hi2c, uint16_t *steps);
-void lsm6ds3tr_c_pedometer_init(I2C_HandleTypeDef *hi2c);
-void lsm6ds3tr_c_wrist_tilt_init(I2C_HandleTypeDef *hi2c);
-void lsm6ds3tr_c_tap_cfg(I2C_HandleTypeDef *hi2c);
-uint8_t lsm6ds3tr_c_who_am_i(I2C_HandleTypeDef *hi2c);
-uint8_t lsm6ds3tr_c_read_wrist(I2C_HandleTypeDef *hi2c);
-uint8_t lsm6ds3tr_c_get_tap(I2C_HandleTypeDef *hi2c);
+void lsm6ds3tr_c_write_register(uint8_t reg, uint8_t* value);
+void lsm6ds3tr_c_init(); // TODO separate into accel and gyro init
+void lsm6ds3tr_c_ctrl10_set(uint8_t bits_to_set);
+void lsm6ds3tr_c_read_accel(int16_t *ax, int16_t *ay, int16_t *az);
+void lsm6ds3tr_c_read_gyro(int16_t *gx, int16_t *gy, int16_t *gz);
+void lsm6ds3tr_c_read_temp(int16_t *temp);
+void lsm6ds3tr_c_read_step_count(uint16_t *steps);
+void lsm6ds3tr_c_pedometer_init();
+void lsm6ds3tr_c_wrist_tilt_init();
+void lsm6ds3tr_c_tap_cfg();
+uint8_t lsm6ds3tr_c_who_am_i();
+uint8_t lsm6ds3tr_c_read_wrist();
+uint8_t lsm6ds3tr_c_get_tap();
 
 #endif /* LSM6DS3TR_C_LSM6DS3TR_C_H_ */

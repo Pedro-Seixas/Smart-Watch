@@ -198,9 +198,9 @@ void show_sensors(){
 	//char temp[50];
 
 	// Read Sensors
-	lsm6ds3tr_c_read_gyro(&hi2c1, &gx, &gy, &gz);
-	lsm6ds3tr_c_read_accel(&hi2c1, &ax, &ay, &az);
-	lsm6ds3tr_c_read_step_count(&hi2c1, &step);
+	lsm6ds3tr_c_read_gyro(&gx, &gy, &gz);
+	lsm6ds3tr_c_read_accel(&ax, &ay, &az);
+	lsm6ds3tr_c_read_step_count(&step);
 	//LSM6DS3_ReadTemp(&hi2c1, &tempInt);
 
 	// Display Sensors
@@ -419,16 +419,16 @@ int main(void)
   HAL_Delay(100);
 
   // Init accelerometer and gyroscope
-  lsm6ds3tr_c_init(&hi2c1);
+  lsm6ds3tr_c_init();
 
   // Init Pedometer
-  lsm6ds3tr_c_pedometer_init(&hi2c1);
+  lsm6ds3tr_c_pedometer_init();
 
   // Init Wrist Tilt
-  lsm6ds3tr_c_wrist_tilt_init(&hi2c1);
+  lsm6ds3tr_c_wrist_tilt_init();
 
   // Tap Init
-  lsm6ds3tr_c_tap_cfg(&hi2c1);
+  lsm6ds3tr_c_tap_cfg();
 
   // OLED Screen
   ssd1306_Init();
