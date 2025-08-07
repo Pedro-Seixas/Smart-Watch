@@ -1,0 +1,47 @@
+{
+  "head": {
+    "docType": "2",
+    "editorVersion": "6.5.50",
+    "c_para": {
+      "pre": "X?",
+      "name": "X49SM8MSD2SC",
+      "package": "CRYSTAL-SMD_L11.5-W4.8-LS12.7",
+      "nameAlias": "Value",
+      "Supplier": "LCSC",
+      "Manufacturer": "YXC(扬兴晶振)",
+      "Manufacturer Part": "X49SM8MSD2SC",
+      "Value": "8MHz",
+      "Supplier Part": "C12674",
+      "JLCPCB Part Class": "Basic Part"
+    },
+    "x": 0,
+    "y": 0,
+    "puuid": "2b63455b69884310babd78bfe2d15c6d",
+    "uuid": "316b24a72c42f31155c4cd36a45744b9",
+    "utime": 1727166307,
+    "importFlag": 0,
+    "c_spiceCmd": null,
+    "hasIdFlag": true
+  },
+  "canvas": "CA~1000~1000~#FFFFFF~yes~#CCCCCC~5~1000~1000~line~5~pixel~5~0~0",
+  "shape": [
+    "P~show~1~1~20~0~0~rep2~0^^20~0^^M 20 -0 h-10~#000000^^0~5~3~0~OSC1~end~~~#000000^^0~15~-1~0~1~start~~~#000000^^0~13~0^^0~M 10 -3 L 7 0 L 10 3",
+    "P~show~1~2~-20~0~180~rep3~0^^-20~0^^M -20 -0 h10~#000000^^0~-5~3~0~OSC2~start~~~#000000^^0~-15~-1~0~2~end~~~#000000^^0~-13~0^^0~M -10 3 L -7 0 L -10 -3",
+    "PL~5 -4 5 4~#880000~1~0~none~rep4~0",
+    "PL~-3 -7 3 -7~#880000~1~0~none~rep5~0",
+    "PL~-5 -4 -5 4~#880000~1~0~none~rep6~0",
+    "PL~3 -7 3 7 -3 7 -3 -7~#880000~1~0~none~rep7~0",
+    "PL~-10 0 -6 0~#000000~1~0~none~rep8~0",
+    "PL~10 0 6 0~#000000~1~0~none~rep9~0",
+    "PL~-5 -7 -5 7~#880000~1~0~none~rep10~0",
+    "PL~5 -7 5 7~#880000~1~0~none~rep11~0",
+    "PL~-3 7 -3 -7 3 -7 3 7 -3 7~#880000~1~0~none~rep12~0"
+  ],
+  "BBox": {
+    "x": -21,
+    "y": -7,
+    "width": 42,
+    "height": 14
+  },
+  "colors": {}
+}

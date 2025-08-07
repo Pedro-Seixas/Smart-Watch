@@ -1,0 +1,43 @@
+{
+  "head": {
+    "docType": "2",
+    "editorVersion": "6.5.48",
+    "c_para": {
+      "pre": "X?",
+      "name": "Q13FC1350000400",
+      "package": "FC-135R_L3.2-W1.5",
+      "nameAlias": "Value",
+      "Supplier": "LCSC",
+      "Manufacturer Part": "Q13FC13500004",
+      "Manufacturer": "EPSON(爱普生)",
+      "Value": "32.768kHz",
+      "Supplier Part": "C32346",
+      "JLCPCB Part Class": "Basic Part"
+    },
+    "x": 0,
+    "y": 0,
+    "puuid": "9a8f1619bfc64a44992219e8fb24b1dd",
+    "uuid": "1b4950aa20f416ecba5c6ca916ddd694",
+    "utime": 1731072006,
+    "importFlag": 0,
+    "c_spiceCmd": null,
+    "hasIdFlag": true
+  },
+  "canvas": "CA~1000~1000~#FFFFFF~yes~#CCCCCC~5~1000~1000~line~5~pixel~5~0~0",
+  "shape": [
+    "PL~-4 -7 -4 7~#8D2323~1~0~none~gge26~0",
+    "R~-2~-7~~~4~14~#880000~1~0~none~gge27~0~",
+    "P~show~0~1~-20~0~180~gge28~0^^-20~0^^M -20 0 h 10~#8D2323^^0~-7~3~0~1~start~~~#8D2323^^0~-11~-1~0~1~end~~~#8D2323^^0~-13~0^^0~M -10 3 L -7 0 L -10 -3",
+    "P~show~0~2~20~0~0~gge35~0^^20~0^^M 20 0 h -10~#8D2323^^0~7~3~0~2~end~~~#8D2323^^0~11~-1~0~2~start~~~#8D2323^^0~13~0^^0~M 10 -3 L 7 0 L 10 3",
+    "PL~4 -7 4 7~#8D2323~1~0~none~gge42~0",
+    "PL~-10 0 -4 0~#8D2323~1~0~none~gge43~0",
+    "PL~4 0 10 0~#8D2323~1~0~none~gge44~0"
+  ],
+  "BBox": {
+    "x": -21,
+    "y": -7,
+    "width": 42,
+    "height": 14
+  },
+  "colors": {}
+}

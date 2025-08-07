@@ -12,8 +12,6 @@
 #include "stm32l0xx_hal.h"
 
 // Registers
-#define LSM6DS3_ADDR  (0x6B << 1)
-#define WHO_AM_I 		0x0F
 
 #define CTRL1_XL 		0x10U
 typedef struct{
@@ -47,6 +45,9 @@ typedef struct{
 	uint8_t not_used02		: 1;
 } lsm6ds3tr_c_func_src2_t;
 
+#define LSM6DS3_ADDR  (0x6B << 1)
+#define WHO_AM_I 		0x0F
+#define WHO_AM_I_VALUE	0x6A
 #define OUTX_L_XL		0x28
 #define OUTX_L_G 		0x22
 #define OUT_TEMP_L  		0x20

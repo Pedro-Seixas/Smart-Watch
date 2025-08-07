@@ -1,0 +1,19 @@
+Cmp-Mod V01 Created by PcbNew   date = 2025-05-31T12:23:28-0400
+
+BeginCmp
+TimeStamp = aec078d3-4d38-469d-9af9-6a4e612f37fc
+Path = 
+Reference = Pad_gge2;
+ValeurCmp = Pad_gge2;
+IdModule  = Pad_gge2;
+EndCmp
+
+BeginCmp
+TimeStamp = ff920375-f9dd-4eca-9a47-398663195ebc
+Path = 
+Reference = Pad_gge3;
+ValeurCmp = Pad_gge3;
+IdModule  = Pad_gge3;
+EndCmp
+
+EndListe
