@@ -1,6 +1,6 @@
 # How to get it working
 
-## Softwares Needed:
+## Softwares needed:
 - STM32CubeIDE
 - STM32CubeProgrammer
 
