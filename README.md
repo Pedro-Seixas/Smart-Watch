@@ -30,4 +30,4 @@ A custom low-power stm32-based wearable smart watch
 <img width="30%" height="398" alt="image" src="https://github.com/user-attachments/assets/e8a86234-9931-4d75-8c81-51e6948eb299" />
 </p>
 
-
+If you would like to clone the repo, see the "How to" in the Docs folder.
