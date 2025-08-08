@@ -37,18 +37,18 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
  typedef enum{
 	  DISPLAY_CLOCK,
-	  CHANGE_TIME,
+	  DISPLAY_CONFIG,
 	  DISPLAY_SENSORS,
-	  SHOW_MENU,
-	  ACTIVE,
-	  INACTIVE
+	  DISPLAY_OPTIONS,
+	  DISPLAY_ACTIVE,
+	  DISPLAY_INACTIVE
  } menu;
 
  // Flags for the menu
  volatile menu main_menu;
- volatile uint8_t menu_active = 0;
  volatile uint8_t select_pressed = 0;
  volatile uint32_t button_last_pressed;
 /* USER CODE END PD */
@@ -120,7 +120,7 @@ void menu_display_time(){
 	// Go to menu
 	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
 		vTaskDelay(pdMS_TO_TICKS(300));
-		main_menu = SHOW_MENU;
+		main_menu = DISPLAY_OPTIONS;
 		button_last_pressed = HAL_GetTick();
 	}
 }
@@ -152,7 +152,7 @@ void show_menu(){
 			ssd1306_SetCursor(2, 48);
 			ssd1306_WriteString("Sensors", Font_7x10, White);
 			break;
-		case CHANGE_TIME:
+		case DISPLAY_CONFIG:
 			ssd1306_SetCursor(2, 0);
 			ssd1306_WriteString("Clock", Font_7x10, White);
 			ssd1306_SetCursor(2, 24);
@@ -186,7 +186,7 @@ void show_sensors(){
 	// Go to menu
 	if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)){
 		vTaskDelay(pdMS_TO_TICKS(300));
-		main_menu = SHOW_MENU;
+		main_menu = DISPLAY_OPTIONS;
 		button_last_pressed = HAL_GetTick();
 	}
 
@@ -285,7 +285,7 @@ void menu_change_time(){
                 HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
             }
             else if(menu_selected == STATE_CONFIRM_FIELD){
-                main_menu = SHOW_MENU;
+                main_menu = DISPLAY_OPTIONS;
             }
             press_start_tick = current_tick;
             last_repeat_tick = current_tick;
@@ -348,7 +348,7 @@ void menu_inactive(){
 
 	// If any event occurs, turn on the display
 	if(lsm6ds3tr_c_read_wrist(&hi2c1) || select_pressed || (!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4))){
-		main_menu = ACTIVE;
+		main_menu = DISPLAY_ACTIVE;
 	}
 }
 
@@ -367,9 +367,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			break;
 		case GPIO_PIN_15:
 			if(ssd1306_GetDisplayOn()){
-				main_menu = INACTIVE;
+				main_menu = DISPLAY_INACTIVE;
 			}else{
-				main_menu = ACTIVE;
+				main_menu = DISPLAY_ACTIVE;
 			}
 			break;
 		default:
@@ -790,13 +790,13 @@ void Menu_Task(void *argument)
 
   // Timer for turn off the screen if watch is not being used
   button_last_pressed = HAL_GetTick();
-  uint32_t delayMs = 5000;
+  uint32_t delayMs = 15000;
   /* Infinite loop */
   for(;;)
   {
 	  // Screen Display Timer
 	  if ((HAL_GetTick() - button_last_pressed) >= delayMs) {
-	      main_menu = INACTIVE;
+	      main_menu = DISPLAY_INACTIVE;
 	      button_last_pressed = HAL_GetTick();
 	      select_pressed = 0;
 	  }
@@ -805,19 +805,19 @@ void Menu_Task(void *argument)
 	  	  case DISPLAY_CLOCK:
 	  		  menu_display_time();
 	  		  break;
-	  	  case CHANGE_TIME:
+	  	  case DISPLAY_CONFIG:
 	  	  	  menu_change_time();
 	  		  break;
 	  	  case DISPLAY_SENSORS:
 	  		  show_sensors();
 	  		  break;
-	  	  case SHOW_MENU:
+	  	  case DISPLAY_OPTIONS:
 	  		  show_menu();
 	  		  break;
-	  	  case INACTIVE:
+	  	  case DISPLAY_INACTIVE:
 	  		  menu_inactive();
 	  		  break;
-	  	  case ACTIVE:
+	  	  case DISPLAY_ACTIVE:
 	  		  menu_active();
 	  		  break;
 	  	  default:
