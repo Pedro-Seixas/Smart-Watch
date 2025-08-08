@@ -15,8 +15,13 @@
 extern I2C_HandleTypeDef hi2c1;
 #define LSM6DS3TR_C_I2C_PORT	hi2c1
 
-// Registers
+// Buffer for passing registers for read functions
+typedef struct{
+	uint8_t* buf;
+	size_t len;
+} buffer_t;
 
+// Registers
 #define CTRL1_XL 		0x10
 typedef struct{
 	uint8_t bw0_xl 			: 1;
@@ -71,6 +76,7 @@ typedef union{
 
 // Functions
 void lsm6ds3tr_c_write_register(uint8_t reg, uint8_t* value);
+void lsm6ds3tr_c_read_register(uint8_t reg, uint8_t* data, size_t size);
 void lsm6ds3tr_c_init(); // TODO separate into accel and gyro init
 void lsm6ds3tr_c_ctrl10_set(uint8_t bits_to_set);
 void lsm6ds3tr_c_read_accel(int16_t *ax, int16_t *ay, int16_t *az);
