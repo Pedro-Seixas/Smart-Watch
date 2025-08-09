@@ -108,7 +108,7 @@ void lsm6ds3tr_c_wrist_tilt_init() {
 
 void lsm6ds3tr_c_tap_cfg() {
 	// Enable tap detection
-	uint8_t tap_cfg = 0x8E;
+	uint8_t tap_cfg = 0x82;
 	uint8_t tap_ths_6d = 0x8F;
 	uint8_t int_dur2 = 0x7D;
 	uint8_t wake_up_ths = 0x80;
@@ -167,17 +167,10 @@ uint8_t lsm6ds3tr_c_get_tap() {
 	// Read Tap
 	lsm6ds3tr_c_read_register(TAP_SRC, &tap_detected, sizeof(tap_detected));
 
-	/*
-	 // Any Tap = 0x40
-	 if(tap_detected & 0x40 || tap_detected & 0x20){
-	 tap_detected = 1;
-	 }else{
-	 tap_detected = 0;
-	 }
-	 */
 	char msg[32];
-	int len = snprintf(msg, sizeof(msg), "WHO_AM_I: %d\r\n", tap_detected);
+	int len = snprintf(msg, sizeof(msg), "%d\r\n", tap_detected);
 	CDC_Transmit_FS((uint8_t*) msg, len);
+
 	return tap_detected;
 }
 
