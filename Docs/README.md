@@ -9,7 +9,7 @@
 
 ## Upload to the device
 - Build the project and open STM32CubeProgrammer.
-- Select USB since we are doing CDC (See 1).
+- Select USB since we are doing DFU (See 1).
 - Click "Open File" and navigate to your project folder, go to the Debug folder and select the file with the .elf extension (See 2).
 - Remove the device from the USB, hold the boot button (SW2) and connect the device to the computer. Release the boot button.
 - Click the refresh icon in the STM32CubeProgrammer software (See 3), it should find the device. Now, click in "Connect" (See 4). Finally, click in "Download" (See 5).
